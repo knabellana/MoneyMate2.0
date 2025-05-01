@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings - Transaction Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
+    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
+    .sidebar.expanded { width: 200px; }
+    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
+    .sidebar.expanded h2 { display: block; }
+    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
+    .sidebar a:hover { background: #573b8a; }
+    .sidebar i { font-size: 1.2em; }
+    .sidebar span { margin-left: 10px; display: none; }
+    .sidebar.expanded span { display: inline; }
+    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
+    .sidebar .logout-btn:hover { background: #ff3b3b; }
+    .toggle-btn { position: absolute; top:10px; right:-25px; background:#573b8a; color:#fff; border:none; padding:8px 10px; cursor:pointer; border-radius:0 5px 5px 0; }
+    .main-content { margin-left:70px; padding:40px; flex:1; }
+    .toggle-expanded ~ .main-content { margin-left:200px; }
+    h1 { text-align: center; margin-bottom:30px; font-size:2em; }
+    .section { background:rgba(255,255,255,0.1); padding:25px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.5); margin-bottom:20px; }
+    .section h3 { font-size:1.5em; margin-bottom:15px; }
+    input, select, textarea, button { width:100%; padding:12px; margin-bottom:15px; font-size:1em; border-radius:5px; border:none; }
+    input, select, textarea { background:#eee; color:#000; }
+    button { background:#573b8a; color:#fff; font-weight:bold; cursor:pointer; transition:background .3s; }
+    button:hover { background:#6d44b8; }
+    .settings-table { width:100%; border-collapse:collapse; background:rgba(255,255,255,0.1); box-shadow:0 0 10px rgba(0,0,0,0.3); border-radius:8px; overflow:hidden; }
+    .settings-table th, .settings-table td { padding:12px 15px; text-align:left; color:#fff; }
+    .settings-table thead { background:#573b8a; }
+    .settings-table td i { font-size:1.2em; cursor:pointer; color:#ff6b6b; }
+    .settings-table td i:hover { transform:scale(1.2); }
+    @media(min-width:768px){
+      .content-wrapper { display:flex; gap:20px; }
+      .left-panel { width:60%; }
+      .right-panel { width:35%; position:sticky; top:40px; }
+      .section { margin:0 0 20px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>MENU</h2>
+    <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
+    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
+    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
+    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+  </div>
+
+  <div class="main-content">
+    <h1>Settings</h1>
+    <div class="content-wrapper">
+      <div class="left-panel">
+        <div class="section" id="profile-settings">
+          <h3>Profile Settings</h3>
+          <input type="text" id="username" placeholder="Username" />
+          <input type="email" id="email" placeholder="Email" />
+          <input type="password" id="password" placeholder="Change Password" />
+          <button id="save-profile-btn">Save Changes</button>
+        </div>
+
+        <div class="section" id="notification-settings">
+          <h3>Notification Preferences</h3>
+          <label>
+            <input type="checkbox" id="email-notifications" />
+            Email Notifications
+          </label>
+          <label>
+            <input type="checkbox" id="push-notifications" />
+            Push Notifications
+          </label>
+          <button id="save-notifications-btn">Save Notifications</button>
+        </div>
+
+        <div class="section" id="theme-settings">
+          <h3>Theme Customization</h3>
+          <label>
+            <input type="radio" name="theme" value="light" /> Light Mode
+          </label>
+          <label>
+            <input type="radio" name="theme" value="dark" checked /> Dark Mode
+          </label>
+          <button id="save-theme-btn">Save Theme</button>
+        </div>
+
+        <div class="section" id="privacy-settings">
+          <h3>Privacy & Security</h3>
+          <button id="enable-2fa-btn">Enable Two-Factor Authentication</button>
+          <button id="set-recovery-btn">Set Account Recovery Options</button>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <table class="settings-table">
+          <thead>
+            <tr>
+              <th>Setting</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Account Recovery</td>
+              <td><i class="fas fa-edit" title="Edit Recovery Options" onclick="editRecoveryOptions()"></i></td>
+            </tr>
+            <tr>
+              <td>Change Email</td>
+              <td><i class="fas fa-edit" title="Edit Email" onclick="editEmail()"></i></td>
+            </tr>
+            <tr>
+              <td>Change Password</td>
+              <td><i class="fas fa-edit" title="Edit Password" onclick="editPassword()"></i></td>
+            </tr>
+            <tr>
+              <td>Notifications</td>
+              <td><i class="fas fa-bell" title="Edit Notifications" onclick="editNotifications()"></i></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
+
+    function logout() {
+      alert('Logging out...');
+      window.location.href = 'login.html';
+    }
+
+    // Profile Settings
+    document.getElementById('save-profile-btn').addEventListener('click', () => {
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      if (username && email && password) {
+        alert('Profile changes saved!');
+      } else {
+        alert('Please fill out all fields.');
+      }
+    });
+
+    // Notification Settings
+    document.getElementById('save-notifications-btn').addEventListener('click', () => {
+      const emailNotifications = document.getElementById('email-notifications').checked;
+      const pushNotifications = document.getElementById('push-notifications').checked;
+      alert(`Email Notifications: ${emailNotifications ? 'Enabled' : 'Disabled'}\nPush Notifications: ${pushNotifications ? 'Enabled' : 'Disabled'}`);
+    });
+
+    // Theme Customization
+    document.getElementById('save-theme-btn').addEventListener('click', () => {
+      const theme = document.querySelector('input[name="theme"]:checked').value;
+      if (theme === 'light') {
+        document.body.style.background = 'white';
+        document.body.style.color = 'black';
+      } else {
+        document.body.style.background = 'linear-gradient(to bottom, #0f0c29, #302b63, #24243e)';
+        document.body.style.color = 'white';
+      }
+      alert('Theme changed!');
+    });
+
+    // Privacy & Security
+    document.getElementById('enable-2fa-btn').addEventListener('click', () => {
+      alert('Two-factor authentication enabled!');
+    });
+
+    document.getElementById('set-recovery-btn').addEventListener('click', () => {
+      alert('Account recovery options set!');
+    });
+
+    // Table Icon Click Handlers
+    function editRecoveryOptions() {
+      alert('Editing account recovery options...');
+    }
+
+    function editEmail() {
+      alert('Editing email...');
+    }
+
+    function editPassword() {
+      alert('Editing password...');
+    }
+
+    function editNotifications() {
+      alert('Editing notification preferences...');
+    }
+  </script>
+</body>
+</html>

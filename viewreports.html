@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
+    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
+    .sidebar.expanded { width: 200px; }
+    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
+    .sidebar.expanded h2 { display: block; }
+    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
+    .sidebar a:hover { background: #573b8a; }
+    .sidebar i { font-size: 1.2em; }
+    .sidebar span { margin-left: 10px; display: none; }
+    .sidebar.expanded span { display: inline; }
+    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
+    .sidebar .logout-btn:hover { background: #ff3b3b; }
+    .toggle-btn { position: absolute; top: 10px; right: -25px; background: #573b8a; color: #fff; border: none; padding: 8px 10px; cursor: pointer; border-radius: 0 5px 5px 0; }
+    .main-content { margin-left: 70px; padding: 40px; flex: 1; }
+    .toggle-expanded ~ .main-content { margin-left: 200px; }
+    h1 { text-align: center; margin-bottom: 30px; font-size: 2em; }
+    .section { background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    .section h3 { font-size: 1.5em; margin-bottom: 15px; }
+    .charts-container { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 30px; }
+    .chart-box { background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 20px; width: 48%; }
+    .report-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); margin-bottom: 20px; }
+    .report-card h4 { font-size: 1.2em; margin-bottom: 10px; }
+    .summary p { font-size: 1.2em; margin: 5px 0; }
+    .report-card .report-header { font-weight: bold; }
+  </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <h2>MENU</h2>
+        <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
+        <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+        <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+        <a href="#" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+        <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
+        <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
+        <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
+        <a href="#" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+        <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+      </div>
+
+  <div class="main-content">
+    <h1>View Reports</h1>
+    
+    <div class="charts-container">
+      <div class="chart-box">
+        <h3>Income vs Expenses</h3>
+        <canvas id="incomeExpensesChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Weekly Expenses</h3>
+        <canvas id="weeklyChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Expense Summary</h3>
+      <div class="report-card">
+        <div class="report-header">Category: Food</div>
+        <p>Total Spent: ₱5000</p>
+        <p>Remaining: ₱1000</p>
+        <div style="width: 80%; background: #4caf50; height: 10px; border-radius: 5px;"></div>
+      </div>
+      <div class="report-card">
+        <div class="report-header">Category: Transport</div>
+        <p>Total Spent: ₱3000</p>
+        <p>Remaining: ₱2000</p>
+        <div style="width: 60%; background: #ffa94d; height: 10px; border-radius: 5px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Sample data for charts
+    const weeklyData = [700, 400, 600, 350, 400];
+    const monthlyData = [3000, 1600, 2400, 1350, 1320];
+
+    // Chart.js setup for Income vs Expenses chart
+    const ctx1 = document.getElementById('incomeExpensesChart').getContext('2d');
+    const incomeExpensesChart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: ['Income', 'Expenses'],
+        datasets: [
+          {
+            label: 'Amount',
+            data: [7000, 5000],
+            backgroundColor: ['#4caf50', '#f44336'],
+            borderRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => '₱' + value
+            }
+          }
+        }
+      }
+    });
+
+    // Weekly Expenses Chart
+    const ctx2 = document.getElementById('weeklyChart').getContext('2d');
+    const weeklyChart = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: ['Food', 'Transport', 'Bills', 'Entertainment', 'Other'],
+        datasets: [{
+          label: 'Amount',
+          data: weeklyData,
+          backgroundColor: '#6d44b8',
+          borderRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => '₱' + ctx.parsed.y
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => '₱' + value
+            }
+          }
+        }
+      }
+    });
+
+    // Sidebar toggle function
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
+
+    // Logout function
+    function logout() {
+      alert('Logging out...');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

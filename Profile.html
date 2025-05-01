@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Profile - Expense Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
+    
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 70px; 
+      height: 100%;
+      background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 30px;
+      transition: width .3s;
+      overflow: hidden;
+    }
+    .sidebar.expanded { width: 200px; }
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em;
+      width: 100%;
+      padding-left: 15px;
+    }
+    .sidebar.expanded h2 { display: block; }
+    .sidebar a {
+      padding: 15px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 100%; 
+      transition: background .3s;
+    }
+    .sidebar.expanded a { justify-content: flex-start; }
+    .sidebar a:hover { background: #573b8a; }
+    .sidebar i { font-size: 1.2em; }
+    .sidebar span { 
+      margin-left: 10px; 
+      display: none;
+      white-space: nowrap;
+    }
+    .sidebar.expanded span { display: inline; }
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+    }
+    .sidebar .logout-btn:hover { background: #ff3b3b; }
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -25px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: none; 
+      padding: 8px 10px; 
+      cursor: pointer; 
+      border-radius: 0 5px 5px 0; 
+      z-index: 1;
+    }
+    
+    /* Main Content Styles */
+    .main-content { 
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left 0.3s; 
+    }
+    .sidebar.expanded ~ .main-content { margin-left: 200px; }
+    
+    /* Centering Profile Container */
+    .profile-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      margin: auto;
+    }
+    
+    .profile-container img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      object-fit: cover;
+      margin-bottom: 15px;
+    }
+    .change-pic {
+      background-color: #573b8a;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-bottom: 20px;
+    }
+    .change-pic:hover { background-color: #6d44b8; }
+    .hidden-file-input { display: none; }
+    h2 { margin-bottom: 10px; }
+    .currency-select { margin: 20px 0; }
+    .currency-select label { font-size: 0.95em; margin-right: 8px; }
+    .currency-select select { padding: 8px 12px; border-radius: 6px; border: none; font-size: 1em; }
+    .stats { display: flex; flex-direction: column; gap: 30px; margin: 30px 0; }
+    .chart-box { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; }
+    form input { width: 100%; padding: 12px; margin-bottom: 15px; border: none; border-radius: 8px; background: #eee; color: #000; font-size: 0.95em; }
+    form button { width: 100%; padding: 12px; background-color: #573b8a; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1em; cursor: pointer; transition: background 0.3s ease; }
+    form button:hover { background-color: #6d44b8; }
+    canvas { max-width: 100%; }
+    @media (max-width: 600px) { .profile-container { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>MENU</h2>
+    <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
+    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
+    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
+    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="profile-container">
+      <img src="https://i.pravatar.cc/150?img=32" alt="User Avatar" id="profile-pic">
+      <br>
+      <input type="file" id="file-upload" class="hidden-file-input" accept="image/*">
+      <button class="change-pic" onclick="fileUpload.click()">Change Photo</button>
+
+      <h2>Jane Doe</h2>
+
+      <div class="currency-select">
+        <label for="currency">Currency:</label>
+        <select id="currency">
+          <option value="PHP" selected>PHP (₱)</option>
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+        </select>
+      </div>
+
+      <div class="stats">
+        <div class="chart-box">
+          <h3>Weekly Expenses</h3>
+          <canvas id="weeklyChart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Monthly Expenses</h3>
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+
+      <form>
+        <input type="text" placeholder="Full Name" value="Jane Doe" required>
+        <input type="email" placeholder="Email" value="jane.doe@example.com" required>
+        <input type="password" placeholder="New Password">
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const fileUpload = document.getElementById('file-upload');
+    const profilePic = document.getElementById('profile-pic');
+    const currencySelect = document.getElementById('currency');
+
+    // Profile picture preview
+    fileUpload.addEventListener('change', () => {
+      const file = fileUpload.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => profilePic.src = e.target.result;
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Chart.js setup
+    const rates = { PHP: 1, USD: 0.018, EUR: 0.016 };
+    let curr = currencySelect.value;
+
+    function makeChart(ctx, data, color) {
+      return new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Food', 'Transport', 'Bills', 'Entertainment', 'Other'],
+          datasets: [{ label: 'Amount', data, backgroundColor: color, borderRadius: 5 }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => {
+                  const val = ctx.parsed.y;
+                  const symbol = curr === 'PHP' ? '₱' : curr === 'USD' ? '$' : '€';
+                  return symbol + val;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: val => {
+                  const symbol = curr === 'PHP' ? '₱' : curr === 'USD' ? '$' : '€';
+                  return symbol + val;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    const weeklyData = [700, 400, 600, 350, 400];
+    const monthlyData = [3000, 1600, 2400, 1350, 1320];
+    const weeklyChart = makeChart(document.getElementById('weeklyChart').getContext('2d'), weeklyData, '#6d44b8');
+    const monthlyChart = makeChart(document.getElementById('monthlyChart').getContext('2d'), monthlyData, '#573b8a');
+
+    // Update charts on currency change
+    currencySelect.addEventListener('change', () => {
+      curr = currencySelect.value;
+      // convert data and update
+      weeklyChart.data.datasets[0].data = weeklyData.map(v => +(v * rates[curr]).toFixed(2));
+      monthlyChart.data.datasets[0].data = monthlyData.map(v => +(v * rates[curr]).toFixed(2));
+      weeklyChart.update();
+      monthlyChart.update();
+    });
+
+    // Toggle Sidebar
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('expanded');
+    }
+    
+    // Logout function
+    function logout() {
+      alert('Logging out...');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

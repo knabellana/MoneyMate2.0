@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29,#302b63,#24243e); color: #fff; }
+    
+    /* Improved Sidebar Styles */
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 70px; 
+      height: 100%; 
+      background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 30px; 
+      transition: width .3s ease;
+      overflow: hidden;
+      z-index: 100;
+    }
+    .sidebar.expanded { width: 220px; }
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em;
+      width: 100%;
+      padding-left: 20px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .sidebar.expanded h2 { display: block; }
+    .sidebar a { 
+      padding: 15px 20px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 100%; 
+      transition: all .3s ease;
+      position: relative;
+    }
+    .sidebar.expanded a { justify-content: flex-start; }
+    .sidebar a:hover { background: #573b8a; }
+    .sidebar i { 
+      font-size: 1.2em; 
+      min-width: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .sidebar span { 
+      margin-left: 15px; 
+      display: none; 
+      white-space: nowrap;
+      transition: opacity .2s ease;
+    }
+    .sidebar.expanded span { display: inline; }
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: background .3s;
+    }
+    .sidebar .logout-btn:hover { background: #ff3b3b; }
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -30px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: none; 
+      padding: 10px 12px; 
+      cursor: pointer; 
+      border-radius: 0 5px 5px 0; 
+      z-index: 101;
+      transition: all .3s ease;
+    }
+    .toggle-btn:hover {
+      position: absolute; top: 10px; right: -25px; background: #573b8a; 
+      color: #fff; border: none; padding: 8px 10px; cursor: pointer; 
+      border-radius: 0 5px 5px 0; 
+    }
+    
+    /* Main Content Styles */
+    .main-content { 
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left .3s ease;
+    }
+    .sidebar.expanded ~ .main-content { margin-left: 220px; }
+    
+    /* Transaction Manager Content Styles */
+    h1 { text-align: center; margin-bottom:30px; font-size:2em; }
+    .content-wrapper { display: block; }
+    .left-panel, .right-panel { width:100%; }
+    .section { 
+      background:rgba(255,255,255,0.1); 
+      padding:25px; 
+      border-radius:10px; 
+      box-shadow:0 0 15px rgba(0,0,0,0.5); 
+      margin-bottom:20px; 
+    }
+    .section h3 { font-size:1.5em; margin-bottom:15px; }
+    input, select, textarea, button { 
+      width:100%; 
+      padding:12px; 
+      margin-bottom:15px; 
+      font-size:1em; 
+      border-radius:5px; 
+      border:none; 
+    }
+    input, select, textarea { background:#eee; color:#000; }
+    button { 
+      background:#573b8a; 
+      color:#fff; 
+      font-weight:bold; 
+      cursor:pointer; 
+      transition:background .3s; 
+    }
+    button:hover { background:#6d44b8; }
+    .transaction-table { 
+      width:100%; 
+      border-collapse:collapse; 
+      background:rgba(255,255,255,0.1); 
+      box-shadow:0 0 10px rgba(0,0,0,0.3); 
+      border-radius:8px; 
+      overflow:hidden; 
+    }
+    .transaction-table th, .transaction-table td { 
+      padding:12px 15px; 
+      text-align:left; 
+      color:#fff; 
+    }
+    .transaction-table thead { background:#573b8a; }
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: #ff6b6b;
+      cursor: pointer;
+      font-size: 1.2em;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .delete-btn:hover {
+      color: #ff3b3b;
+      background: rgba(255, 59, 59, 0.2);
+      transform: scale(1.2);
+    }
+    .delete-btn i {
+      font-size: 1.1em;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .summary p { font-size:1.2em; margin:5px 0; }
+    #calculate-timeframe { margin-bottom:15px; }
+
+    @media(min-width:768px){
+      .content-wrapper { display:flex; gap:20px; }
+      .left-panel { width:60%; }
+      .right-panel { width:35%; position:sticky; top:40px; }
+      .section { margin:0 0 20px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"> <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+   
+      <i class="fas fa-bars"></i>
+    </button>
+    <h2>MENU</h2>
+    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span>Profile</span></a>
+    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+    <a href="#" title="See All Transactions"><i class="fas fa-list"></i><span>Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span>Reports</span></a>
+    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span>Budget</span></a>
+    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span>Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </button>
+  </div>
+
+  <div class="main-content">
+    <h1>Expense Tracker</h1>
+    <div class="content-wrapper">
+      <div class="left-panel">
+        <div class="section" id="income-section">
+          <h3>Income</h3>
+          <input type="number" id="income-input" placeholder="Enter Monthly Income" />
+          <button id="save-income-btn">Save Income</button>
+          <div class="summary"><p>Total Income: <span id="total-income">₱ 0.00</span></p></div>
+        </div>
+        <div class="section" id="expense-section">
+          <h3>Add Expense</h3>
+          <select id="category">
+            <option value="" disabled selected>-- Category --</option>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Bills</option>
+            <option>Entertainment</option>
+            <option>Other</option>
+          </select>
+          <input type="number" id="amount" placeholder="Amount" min="0" step="0.01">
+          <input type="date" id="date">
+          <textarea id="note" placeholder="Notes (optional)"></textarea>
+          <button id="add-expense-btn">Add Expense</button>
+        </div>
+        <div class="section" id="calculate-section">
+          <h3>Expenses Summary</h3>
+          <div class="summary">
+            <p>Total Expenses: <span id="total-expenses">₱ 0.00</span></p>
+            <p>Remaining Balance: <span id="remaining-balance">₱ 0.00</span></p>
+          </div>
+          <select id="calculate-timeframe">
+            <option value="monthly">Monthly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+          <button id="calculate-btn">Calculate</button>
+        </div>
+      </div>
+      <div class="right-panel">
+        <table class="transaction-table" id="transaction-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Note</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
+
+    let totalIncome = 0, totalExpenses = 0;
+
+    document.getElementById('save-income-btn').addEventListener('click', () => {
+      totalIncome = parseFloat(document.getElementById('income-input').value) || 0;
+      document.getElementById('total-income').textContent = `₱ ${totalIncome.toFixed(2)}`;
+      updateSummary();
+    });
+
+    document.getElementById('add-expense-btn').addEventListener('click', () => {
+      const cat = document.getElementById('category').value,
+            amt = parseFloat(document.getElementById('amount').value),
+            date = document.getElementById('date').value,
+            note = document.getElementById('note').value.trim();
+
+      if (!cat || isNaN(amt) || !date) return alert('Fill category, amount, and date.');
+
+      totalExpenses += amt;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${cat}</td><td>${date}</td><td>₱ ${amt.toFixed(2)}</td><td>${note || '—'}</td>
+                      <td><button class="delete-btn" title="Delete"><i class="fas fa-trash-alt"></i></button></td>`;
+
+      tr.querySelector('.delete-btn').addEventListener('click', () => {
+        totalExpenses -= amt;
+        tr.remove();
+        updateSummary();
+      });
+
+      document.querySelector('#transaction-table tbody').appendChild(tr);
+
+      updateSummary();
+      document.getElementById('category').selectedIndex = 0;
+      document.getElementById('amount').value = '';
+      document.getElementById('date').value = '';
+      document.getElementById('note').value = '';
+    });
+
+    document.getElementById('calculate-btn').addEventListener('click', () => {
+      const tf = document.getElementById('calculate-timeframe').value,
+            pf = tf === 'weekly' ? 4 : 1,
+            ai = totalIncome / pf,
+            ae = totalExpenses / pf,
+            rb = ai - ae;
+
+      document.getElementById('total-expenses').textContent = `₱ ${ae.toFixed(2)}`;
+      document.getElementById('remaining-balance').textContent = `₱ ${rb.toFixed(2)}`;
+
+      alert(`Calculated for ${tf}! Your balance is shown above.`);
+    });
+
+    function updateSummary() {
+      document.getElementById('total-expenses').textContent = `₱ ${totalExpenses.toFixed(2)}`;
+      document.getElementById('remaining-balance').textContent = `₱ ${(totalIncome - totalExpenses).toFixed(2)}`;
+    }
+
+    function logout() {
+      alert('Logging out...');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

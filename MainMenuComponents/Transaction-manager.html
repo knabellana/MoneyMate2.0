@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction Manager</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <a href="#"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="#"><i class="fas fa-plus-circle"></i><span> Add Expense</span></a>
+    <a href="#"><i class="fas fa-calculator"></i><span> Calculate</span></a>
+    <button class="logout-btn"><i class="fas fa-sign-out-alt"></i><span> Logout</span></button>
+  </div>
+
+  <div id="main-content">
+    <h1>Expense Tracker</h1>
+    <div class="content-wrapper">
+      <!-- LEFT PANEL -->
+      <div class="left-panel">
+        <div class="section" id="income-section">
+          <h3>Income</h3>
+          <input type="number" id="income-input" placeholder="Enter Monthly Income" />
+          <button id="save-income-btn">Save Income</button>
+          <div class="summary">Total Income: <span id="total-income">₱ 0.00</span></div>
+        </div>
+
+        <div class="section" id="expense-section">
+          <h3>Add Expense</h3>
+          <select id="category">
+            <option value="" disabled selected>-- Category --</option>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Bills</option>
+            <option>Entertainment</option>
+            <option>Other</option>
+          </select>
+          <input type="number" id="amount" placeholder="Amount" min="0" step="0.01">
+          <input type="date" id="date">
+          <textarea id="note" placeholder="Notes (optional)"></textarea>
+          <button id="add-expense-btn">Add Expense</button>
+        </div>
+
+        <div class="section" id="calculate-section">
+          <h3>Expenses Summary</h3>
+          <div class="summary">
+            <p>Total Expenses: <span id="total-expenses">₱ 0.00</span></p>
+            <p>Remaining Balance: <span id="remaining-balance">₱ 0.00</span></p>
+          </div>
+          <select id="calculate-timeframe">
+            <option value="monthly">Monthly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+          <button id="calculate-btn">Calculate</button>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <div class="section">
+          <h3>Transactions</h3>
+          <table class="transaction-table" id="transaction-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Note</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

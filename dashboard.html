@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Transaction Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29,#302b63,#24243e); color: #fff; }
+    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
+    .sidebar.expanded { width: 200px; }
+    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
+    .sidebar.expanded h2 { display: block; }
+    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
+    .sidebar a:hover { background: #573b8a; }
+    .sidebar i { font-size: 1.2em; }
+    .sidebar span { margin-left: 10px; display: none; }
+    .sidebar.expanded span { display: inline; }
+    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
+    .sidebar .logout-btn:hover { background: #ff3b3b; }
+    .toggle-btn { position: absolute; top:10px; right:-25px; background:#573b8a; color:#fff; border:none; padding:8px 10px; cursor:pointer; border-radius:0 5px 5px 0; }
+    .main-content { margin-left:70px; padding:40px; flex:1; }
+    .toggle-expanded ~ .main-content { margin-left:200px; }
+    h1 { text-align: center; margin-bottom:30px; font-size:2em; }
+    .dashboard-wrapper { display: block; }
+    .summary-cards { display: flex; gap: 20px; }
+    .summary-card { background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); flex: 1; }
+    .summary-card h3 { font-size: 1.5em; margin-bottom: 15px; }
+    .summary-card p { font-size: 1.2em; margin: 5px 0; }
+    .transaction-table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); border-radius: 8px; overflow: hidden; }
+    .transaction-table th, .transaction-table td { padding: 12px 15px; text-align: left; color: #fff; }
+    .transaction-table thead { background: #573b8a; }
+    .chart-container { margin-top: 30px; }
+    .chart { width: 100%; height: 250px; background: rgba(255, 255, 255, 0.2); border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); display: flex; justify-content: center; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>MENU</h2>
+    <a href="Menu.html" title="Go to Home"><i class="fas fa-home"></i><span> Home</span></a> <!-- Added Home Button -->
+    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
+    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
+    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+  </div>
+
+  <div class="main-content">
+    <h1>Dashboard</h1>
+    <div class="dashboard-wrapper">
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-card">
+          <h3>Total Income</h3>
+          <p id="total-income">₱ 0.00</p>
+        </div>
+        <div class="summary-card">
+          <h3>Total Expenses</h3>
+          <p id="total-expenses">₱ 0.00</p>
+        </div>
+        <div class="summary-card">
+          <h3>Remaining Balance</h3>
+          <p id="remaining-balance">₱ 0.00</p>
+        </div>
+        <div class="summary-card">
+          <h3># of Transactions</h3>
+          <p id="transaction-count">0</p>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-container">
+        <div class="chart">
+          <p>Chart showing expenses by category (e.g. pie chart).</p>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="section">
+        <h3>Recent Transactions</h3>
+        <table class="transaction-table" id="transaction-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="recent-transactions">
+            <!-- Dynamic content goes here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Update the dashboard summary with mock data (for now)
+    const totalIncome = 50000;
+    const totalExpenses = 25000;
+    const remainingBalance = totalIncome - totalExpenses;
+    const transactionCount = 12;
+
+    document.getElementById('total-income').textContent = `₱ ${totalIncome.toFixed(2)}`;
+    document.getElementById('total-expenses').textContent = `₱ ${totalExpenses.toFixed(2)}`;
+    document.getElementById('remaining-balance').textContent = `₱ ${remainingBalance.toFixed(2)}`;
+    document.getElementById('transaction-count').textContent = transactionCount;
+
+    // Add recent transactions dynamically
+    const transactions = [
+      { category: "Food", date: "2025-04-25", amount: 500, note: "Lunch" },
+      { category: "Transport", date: "2025-04-24", amount: 200, note: "Bus fare" },
+      // Add more transactions here
+    ];
+
+    const transactionsTableBody = document.getElementById('recent-transactions');
+    transactions.forEach(transaction => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${transaction.category}</td>
+        <td>${transaction.date}</td>
+        <td>₱ ${transaction.amount.toFixed(2)}</td>
+        <td>${transaction.note || '—'}</td>
+      `;
+      transactionsTableBody.appendChild(tr);
+    });
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
+
+    function logout() {
+      alert('Logging out...');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
