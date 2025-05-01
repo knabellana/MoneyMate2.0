@@ -4,121 +4,565 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Budget Planner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
-    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29,#302b63,#24243e); color: #fff; }
-    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
-    .sidebar.expanded { width: 200px; }
-    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
-    .sidebar.expanded h2 { display: block; }
-    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
-    .sidebar a:hover { background: #573b8a; }
-    .sidebar i { font-size: 1.2em; }
-    .sidebar span { margin-left: 10px; display: none; }
-    .sidebar.expanded span { display: inline; }
-    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
-    .sidebar .logout-btn:hover { background: #ff3b3b; }
-    .toggle-btn { position: absolute; top:10px; right:-25px; background:#573b8a; color:#fff; border:none; padding:8px 10px; cursor:pointer; border-radius:0 5px 5px 0; }
-    .main-content { margin-left:70px; padding:40px; flex:1; transition: margin-left .3s; }
-    .sidebar.expanded ~ .main-content { margin-left:200px; }
-    h1 { text-align: center; margin-bottom:30px; font-size:2em; }
-    .section { background:rgba(255,255,255,0.1); padding:25px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.5); margin-bottom:20px; max-width:600px; margin-left:auto; margin-right:auto; }
-    .section h3 { font-size:1.5em; margin-bottom:15px; }
-    input, select, button { width:100%; padding:12px; margin-bottom:15px; font-size:1em; border-radius:5px; border:none; }
-    input, select { background:#eee; color:#000; }
-    button { background:#573b8a; color:#fff; font-weight:bold; cursor:pointer; transition:background .3s; }
-    button:hover { background:#6d44b8; }
-    .summary p { font-size:1.2em; margin:5px 0; }
+    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
+    
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #111;
+      z-index: 100;
+      transition: left 0.3s ease;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #333;
+      text-align: center;
+    }
+    
+    .sidebar-header h2 {
+      color: #fff;
+      font-size: 1.5em;
+      margin-bottom: 5px;
+    }
+    
+    .menu-items {
+      flex: 1;
+      padding: 15px 0;
+      overflow-y: auto;
+    }
+    
+    .menu-items a {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: #fff;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    
+    .menu-items a i {
+      width: 30px;
+      text-align: center;
+      margin-right: 10px;
+    }
+    
+    .menu-items a:hover {
+      background: #573b8a;
+    }
+    
+    .menu-items a.active {
+      background: #6d44b8;
+    }
+    
+    /* Toggle Button */
+    .toggle-btn {
+      position: fixed;
+      left: 20px;
+      top: 20px;
+      background: #573b8a;
+      color: #fff;
+      border: none;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 5px;
+      z-index: 101;
+      transition: left 0.3s ease;
+    }
+    
+    .toggle-btn:hover {
+      background: #6d44b8;
+    }
+    
+    /* When sidebar is open */
+    .sidebar.open {
+      left: 0;
+    }
+    
+    .sidebar.open ~ .main-content {
+      margin-left: 250px;
+    }
+    
+    .sidebar.open ~ .toggle-btn {
+      left: 270px;
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2em;
+      font-weight: 700;
+    }
+    
+    .section {
+      background: rgba(255,255,255,0.1);
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .section h3 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    
+    /* Form Styles */
+    .budget-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    label {
+      font-size: 1.1em;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #000;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #6d44b8;
+    }
+    
+    .error {
+      color: #ff6b6b;
+      font-size: 0.9em;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: none;
+      background: #573b8a;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    button:hover {
+      background: #6d44b8;
+    }
+    
+    /* Budget Summary Styles */
+    .budget-item {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .budget-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .budget-item-header h4 {
+      font-size: 1.2em;
+      font-weight: 500;
+    }
+    
+    .budget-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .budget-actions button {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      font-size: 1em;
+      border-radius: 5px;
+    }
+    
+    .edit-btn {
+      background: #4caf50;
+    }
+    
+    .edit-btn:hover {
+      background: #45a049;
+    }
+    
+    .delete-btn {
+      background: #f44336;
+    }
+    
+    .delete-btn:hover {
+      background: #da190b;
+    }
+    
+    .progress-bar {
+      background: #ddd;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 12px;
+      position: relative;
+    }
+    
+    .progress {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      font-size: 0.9em;
+      color: #ccc;
+      margin-top: 5px;
+    }
+    
+    .loading {
+      color: #fff;
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.1em;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px;
+      }
+      .section {
+        max-width: 100%;
+      }
+      .budget-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .budget-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
-    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-    <h2>MENU</h2>
-    <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
-    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
-    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
-    <a href="#" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
-    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
-    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
-    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
-    <a href="#" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
-    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+    <div class="sidebar-header">
+      <h2>MENU</h2>
+    </div>
+    
+    <div class="menu-items">
+      <a href="Menu.html"><i class="fas fa-home"></i> Home</a>
+      <a href="Profile.html"><i class="fas fa-user"></i> Profile</a>
+      <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="transactions.html"><i class="fas fa-list"></i> Transactions</a>
+      <a href="viewreports.html"><i class="fas fa-chart-pie"></i> Reports</a>
+      <a href="budget.html" class="active"><i class="fas fa-wallet"></i> Budget</a>
+      <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+      <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
+    </div>
+    
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
   </div>
 
+  <!-- Toggle Button -->
+  <button class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Main Content -->
   <div class="main-content">
     <h1>Budget Planner</h1>
     <div class="section" id="budget-section">
       <h3>Set Budget Per Category</h3>
-      <form id="budget-form">
-        <label for="budget-category">Category</label>
-        <select id="budget-category" required>
-          <option value="" disabled selected>-- Choose Category --</option>
-          <option>Food</option>
-          <option>Transport</option>
-          <option>Bills</option>
-          <option>Entertainment</option>
-          <option>Other</option>
-        </select>
-
-        <label for="budget-amount">Budget Amount (₱)</label>
-        <input type="number" id="budget-amount" min="0" step="0.01" placeholder="e.g., 2000" required>
-
+      <form id="budget-form" class="budget-form" aria-label="Set Budget Form">
+        <div class="form-group">
+          <label for="budget-category">Category</label>
+          <select id="budget-category" required aria-required="true">
+            <option value="" disabled selected>-- Choose Category --</option>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Bills</option>
+            <option>Entertainment</option>
+            <option>Other</option>
+          </select>
+          <span class="error" id="category-error">Please select a category.</span>
+        </div>
+        <div class="form-group">
+          <label for="budget-amount">Budget Amount (₱)</label>
+          <input type="number" id="budget-amount" min="0" step="0.01" placeholder="e.g., 2000" required aria-required="true">
+          <span class="error" id="amount-error">Please enter a valid amount.</span>
+        </div>
         <button type="submit">Set Budget</button>
       </form>
 
       <h3 style="margin-top:30px;">Budget Summary</h3>
-      <div id="budget-summary" class="summary">
-        <p>No budgets set yet.</p>
-      </div>
+      <div id="loading-budgets" class="loading">Loading budgets...</div>
+      <div id="budget-summary" class="summary"></div>
     </div>
   </div>
 
   <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('expanded');
-    }
+    // Initialize Firebase with the same configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm81SKSxFhG6U43vMTtgVPd3W4N_rEnEE",
+      authDomain: "moneymate-1dbbd.firebaseapp.com",
+      databaseURL: "https://moneymate-1dbbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "moneymate-1dbbd",
+      storageBucket: "moneymate-1dbbd.firebasestorage.app",
+      messagingSenderId: "273661692942",
+      appId: "1:273661692942:web:243330cf43b65a3ebfc05f",
+      measurementId: "G-G53GNBR685"
+    };
 
-    function logout() {
-      alert('Logging out...');
-      window.location.href = 'login.html';
-    }
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
 
-    const budgets = {};
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const budgetForm = document.getElementById('budget-form');
+    const budgetCategory = document.getElementById('budget-category');
+    const budgetAmount = document.getElementById('budget-amount');
+    const categoryError = document.getElementById('category-error');
+    const amountError = document.getElementById('amount-error');
+    const budgetSummary = document.getElementById('budget-summary');
+    const loadingBudgets = document.getElementById('loading-budgets');
 
-    document.getElementById('budget-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const category = document.getElementById('budget-category').value;
-      const amount = parseFloat(document.getElementById('budget-amount').value);
-      if (!category || isNaN(amount)) return alert("Please enter valid budget data.");
+    // Variables to store data
+    let currentUser = null;
+    let userBudgets = {};
+    let userExpenses = [];
 
-      budgets[category] = amount;
-      updateBudgetSummary();
-      this.reset();
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadUserData();
+      } else {
+        alert('Please sign in to access the budget planner');
+        window.location.href = 'login.html';
+      }
     });
 
-    function updateBudgetSummary() {
-      const summary = document.getElementById('budget-summary');
-      summary.innerHTML = '';
+    // Load user data from Firebase
+    function loadUserData() {
+      loadingBudgets.style.display = 'block';
 
-      for (const category in budgets) {
-        const limit = budgets[category];
-        const spent = 0; // Placeholder - link with expenses if desired
-        const percent = Math.min((spent / limit) * 100, 100);
+      // Load budgets
+      database.ref('users/' + currentUser.uid + '/budgets').on('value', snapshot => {
+        userBudgets = {};
+        if (snapshot.exists()) {
+          snapshot.forEach(childSnapshot => {
+            userBudgets[childSnapshot.key] = childSnapshot.val().amount;
+          });
+        }
+        updateBudgetSummary();
+        loadingBudgets.style.display = 'none';
+      });
+
+      // Load expenses
+      database.ref('users/' + currentUser.uid + '/expenses').on('value', snapshot => {
+        userExpenses = [];
+        if (snapshot.exists()) {
+          snapshot.forEach(childSnapshot => {
+            const expense = childSnapshot.val();
+            expense.id = childSnapshot.key;
+            userExpenses.push(expense);
+          });
+        }
+        updateBudgetSummary();
+      });
+    }
+
+    // Form validation
+    function validateForm() {
+      let isValid = true;
+      if (!budgetCategory.value) {
+        categoryError.style.display = 'block';
+        isValid = false;
+      } else {
+        categoryError.style.display = 'none';
+      }
+      if (!budgetAmount.value || budgetAmount.value <= 0) {
+        amountError.style.display = 'block';
+        isValid = false;
+      } else {
+        amountError.style.display = 'none';
+      }
+      return isValid;
+    }
+
+    // Handle budget form submission
+    budgetForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!validateForm()) return;
+
+      const category = budgetCategory.value;
+      const amount = parseFloat(budgetAmount.value);
+
+      // Save budget to Firebase
+      database.ref('users/' + currentUser.uid + '/budgets/' + category).set({
+        amount: amount
+      }).then(() => {
+        budgetForm.reset();
+      }).catch(error => {
+        alert('Error saving budget: ' + error.message);
+      });
+    });
+
+    // Update budget summary
+    function updateBudgetSummary() {
+      budgetSummary.innerHTML = '';
+
+      if (Object.keys(userBudgets).length === 0) {
+        budgetSummary.innerHTML = '<p>No budgets set yet.</p>';
+        return;
+      }
+
+      // Calculate expenses per category
+      const expensesByCategory = {};
+      userExpenses.forEach(expense => {
+        if (!expensesByCategory[expense.category]) {
+          expensesByCategory[expense.category] = 0;
+        }
+        expensesByCategory[expense.category] += expense.amount;
+      });
+
+      // Generate summary for each budget
+      for (const category in userBudgets) {
+        const limit = userBudgets[category];
+        const spent = expensesByCategory[category] || 0;
+        const percent = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
         const barColor = percent > 90 ? '#ff6b6b' : percent > 70 ? '#ffa94d' : '#4caf50';
 
-        const row = document.createElement('div');
-        row.innerHTML = `
-          <p><strong>${category}:</strong> ₱${spent.toFixed(2)} / ₱${limit.toFixed(2)}</p>
-          <div style="background:#ddd; border-radius:20px; overflow:hidden; height:10px; margin-bottom:15px;">
-            <div style="width:${percent}%; background:${barColor}; height:100%;"></div>
+        const budgetItem = document.createElement('div');
+        budgetItem.className = 'budget-item';
+        budgetItem.innerHTML = `
+          <div class="budget-item-header">
+            <h4>${category}</h4>
+            <div class="budget-actions">
+              <button class="edit-btn" data-category="${category}" aria-label="Edit ${category} budget">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="delete-btn" data-category="${category}" aria-label="Delete ${category} budget">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </div>
+          <p>Spent: ₱${spent.toFixed(2)} / Budget: ₱${limit.toFixed(2)}</p>
+          <div class="progress-bar">
+            <div class="progress" style="width:${percent}%;background:${barColor};"></div>
+          </div>
+          <p class="progress-text">${percent.toFixed(1)}% used</p>
         `;
-        summary.appendChild(row);
+        budgetSummary.appendChild(budgetItem);
       }
+
+      // Add event listeners for edit and delete buttons
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = btn.dataset.category;
+          budgetCategory.value = category;
+          budgetAmount.value = userBudgets[category];
+          budgetAmount.focus();
+        });
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = btn.dataset.category;
+          if (confirm(`Are you sure you want to delete the budget for ${category}?`)) {
+            database.ref('users/' + currentUser.uid + '/budgets/' + category).remove()
+              .catch(error => {
+                alert('Error deleting budget: ' + error.message);
+              });
+          }
+        });
+      });
     }
+
+    // Sidebar Toggle
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    // Highlight active menu item
+    const menuItems = document.querySelectorAll('.menu-items a');
+    menuItems.forEach(item => {
+      if (item.getAttribute('href') === 'budget.html') {
+        item.classList.add('active');
+      }
+      
+      item.addEventListener('click', function() {
+        menuItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        alert('Error signing out: ' + error.message);
+      });
+    });
   </script>
 </body>
 </html>

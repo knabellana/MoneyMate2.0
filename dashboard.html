@@ -4,45 +4,315 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard - Transaction Manager</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <!-- Add Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
-    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29,#302b63,#24243e); color: #fff; }
-    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
-    .sidebar.expanded { width: 200px; }
-    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
-    .sidebar.expanded h2 { display: block; }
-    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
-    .sidebar a:hover { background: #573b8a; }
-    .sidebar i { font-size: 1.2em; }
-    .sidebar span { margin-left: 10px; display: none; }
-    .sidebar.expanded span { display: inline; }
-    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
-    .sidebar .logout-btn:hover { background: #ff3b3b; }
-    .toggle-btn { position: absolute; top:10px; right:-25px; background:#573b8a; color:#fff; border:none; padding:8px 10px; cursor:pointer; border-radius:0 5px 5px 0; }
-    .main-content { margin-left:70px; padding:40px; flex:1; }
-    .toggle-expanded ~ .main-content { margin-left:200px; }
-    h1 { text-align: center; margin-bottom:30px; font-size:2em; }
-    .dashboard-wrapper { display: block; }
-    .summary-cards { display: flex; gap: 20px; }
-    .summary-card { background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); flex: 1; }
-    .summary-card h3 { font-size: 1.5em; margin-bottom: 15px; }
-    .summary-card p { font-size: 1.2em; margin: 5px 0; }
-    .transaction-table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); border-radius: 8px; overflow: hidden; }
-    .transaction-table th, .transaction-table td { padding: 12px 15px; text-align: left; color: #fff; }
-    .transaction-table thead { background: #573b8a; }
-    .chart-container { margin-top: 30px; }
-    .chart { width: 100%; height: 250px; background: rgba(255, 255, 255, 0.2); border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); display: flex; justify-content: center; align-items: center; }
+    body { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); 
+      color: #fff; 
+    }
+
+    /* Sidebar Styles (From Help & Support Page) */
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 70px; 
+      height: 100%; 
+      background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 30px; 
+      transition: width 0.3s; 
+      z-index: 100;
+    }
+    .sidebar.expanded { 
+      width: 200px; 
+    }
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em; 
+      text-align: center; 
+    }
+    .sidebar.expanded h2 { 
+      display: block; 
+    }
+    .sidebar a { 
+      padding: 15px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 100%; 
+      transition: background 0.3s; 
+    }
+    .sidebar a:hover { 
+      background: #573b8a; 
+    }
+    .sidebar a.active {
+      background: #6d44b8;
+    }
+    .sidebar i { 
+      font-size: 1.2em; 
+    }
+    .sidebar span { 
+      margin-left: 10px; 
+      display: none; 
+    }
+    .sidebar.expanded span { 
+      display: inline; 
+    }
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: background 0.3s; 
+    }
+    .sidebar .logout-btn:hover { 
+      background: #ff3b3b; 
+    }
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -25px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: none; 
+      padding: 8px 10px; 
+      cursor: pointer; 
+      border-radius: 0 5px 5px 0; 
+      transition: background 0.3s; 
+    }
+    .toggle-btn:hover { 
+      background: #6d44b8; 
+    }
+
+    /* Main Content */
+    .main-content { 
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left 0.3s; 
+    }
+    .toggle-expanded ~ .main-content { 
+      margin-left: 200px; 
+    }
+    
+    /* Dashboard Styles */
+    h1 { 
+      text-align: center; 
+      margin-bottom: 40px; 
+      font-size: 2.5em; 
+      font-weight: 700; 
+      color: #e0e0e0; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+    }
+    .dashboard-wrapper { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 30px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+    
+    /* Summary Cards */
+    .summary-cards { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+      gap: 20px; 
+      margin-bottom: 20px; 
+    }
+    .summary-card { 
+      background: rgba(255, 255, 255, 0.1); 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      transition: transform 0.2s ease; 
+      display: flex; 
+      align-items: center; 
+      gap: 15px; 
+    }
+    .summary-card:hover { 
+      transform: translateY(-5px); 
+    }
+    .summary-card i { 
+      font-size: 2em; 
+      color: #6d44b8; 
+    }
+    .summary-card div { 
+      flex: 1; 
+    }
+    .summary-card h3 { 
+      font-size: 1.3em; 
+      margin-bottom: 10px; 
+      color: #e0e0e0; 
+    }
+    .summary-card p { 
+      font-size: 1.2em; 
+      color: #d0d0d0; 
+      font-weight: 500; 
+    }
+    
+    /* Chart Section */
+    .chart-container { 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 12px; 
+      padding: 25px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      transition: transform 0.2s ease; 
+    }
+    .chart-container:hover { 
+      transform: translateY(-5px); 
+    }
+    .chart-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 20px; 
+    }
+    .chart-header h3 { 
+      font-size: 1.6em; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      border-bottom: 2px solid #6d44b8; 
+      padding-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    .chart-wrapper { 
+      position: relative; 
+      height: 300px; 
+      width: 100%; 
+    }
+    
+    /* Recent Transactions */
+    .section { 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 12px; 
+      padding: 25px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      transition: transform 0.2s ease; 
+    }
+    .section:hover { 
+      transform: translateY(-5px); 
+    }
+    .section h3 { 
+      font-size: 1.6em; 
+      margin-bottom: 20px; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      border-bottom: 2px solid #6d44b8; 
+      padding-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    .transaction-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: rgba(255, 255, 255, 0.05); 
+      border-radius: 8px; 
+      overflow: hidden; 
+    }
+    .transaction-table th, .transaction-table td { 
+      padding: 15px; 
+      text-align: left; 
+      color: #d0d0d0; 
+      font-size: 0.95em; 
+    }
+    .transaction-table thead { 
+      background: #573b8a; 
+    }
+    .transaction-table tbody tr { 
+      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      transition: background 0.3s; 
+    }
+    .transaction-table tbody tr:last-child { 
+      border-bottom: none; 
+    }
+    .transaction-table tbody tr:hover { 
+      background: rgba(255,255,255,0.1); 
+    }
+    
+    /* Loading State */
+    .loading { 
+      color: #fff; 
+      text-align: center; 
+      margin: 20px 0; 
+      font-size: 1.2em; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 10px; 
+    }
+    .loading i { 
+      animation: spin 1s linear infinite; 
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 70px;
+        padding: 20px;
+      }
+      .toggle-expanded ~ .main-content { 
+        margin-left: 200px; 
+      }
+      h1 { 
+        font-size: 2em; 
+        margin-bottom: 30px; 
+      }
+      .summary-cards { 
+        grid-template-columns: 1fr; 
+      }
+      .chart-wrapper { 
+        height: 250px; 
+      }
+      .section, .chart-container { 
+        padding: 20px; 
+      }
+      .section h3, .chart-header h3 { 
+        font-size: 1.4em; 
+      }
+      .transaction-table th, .transaction-table td { 
+        padding: 10px; 
+        font-size: 0.9em; 
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Sidebar (From Help & Support Page) -->
   <div class="sidebar" id="sidebar">
     <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
     <h2>MENU</h2>
-    <a href="Menu.html" title="Go to Home"><i class="fas fa-home"></i><span> Home</span></a> <!-- Added Home Button -->
+    <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
     <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
-    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="dashboard.html" title="View Dashboard" class="active"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
     <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
     <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
     <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
@@ -51,39 +321,58 @@
     <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
   </div>
 
+  <!-- Main Content -->
   <div class="main-content">
     <h1>Dashboard</h1>
     <div class="dashboard-wrapper">
       <!-- Summary Cards -->
       <div class="summary-cards">
         <div class="summary-card">
-          <h3>Total Income</h3>
-          <p id="total-income">₱ 0.00</p>
+          <i class="fas fa-money-bill-wave"></i>
+          <div>
+            <h3>Total Income</h3>
+            <p id="total-income">₱ 0.00</p>
+          </div>
         </div>
         <div class="summary-card">
-          <h3>Total Expenses</h3>
-          <p id="total-expenses">₱ 0.00</p>
+          <i class="fas fa-shopping-cart"></i>
+          <div>
+            <h3>Total Expenses</h3>
+            <p id="total-expenses">₱ 0.00</p>
+          </div>
         </div>
         <div class="summary-card">
-          <h3>Remaining Balance</h3>
-          <p id="remaining-balance">₱ 0.00</p>
+          <i class="fas fa-wallet"></i>
+          <div>
+            <h3>Remaining Balance</h3>
+            <p id="remaining-balance">₱ 0.00</p>
+          </div>
         </div>
         <div class="summary-card">
-          <h3># of Transactions</h3>
-          <p id="transaction-count">0</p>
+          <i class="fas fa-list"></i>
+          <div>
+            <h3># of Transactions</h3>
+            <p id="transaction-count">0</p>
+          </div>
         </div>
       </div>
 
       <!-- Chart Section -->
       <div class="chart-container">
-        <div class="chart">
-          <p>Chart showing expenses by category (e.g. pie chart).</p>
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-pie"></i> Expenses by Category</h3>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="expenseChart"></canvas>
         </div>
       </div>
 
       <!-- Recent Transactions -->
       <div class="section">
-        <h3>Recent Transactions</h3>
+        <h3><i class="fas fa-history"></i> Recent Transactions</h3>
+        <div id="loading-transactions" class="loading">
+          <i class="fas fa-spinner"></i> Loading transactions...
+        </div>
         <table class="transaction-table" id="transaction-table">
           <thead>
             <tr>
@@ -102,43 +391,224 @@
   </div>
 
   <script>
-    // Update the dashboard summary with mock data (for now)
-    const totalIncome = 50000;
-    const totalExpenses = 25000;
-    const remainingBalance = totalIncome - totalExpenses;
-    const transactionCount = 12;
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm81SKSxFhG6U43vMTtgVPd3W4N_rEnEE",
+      authDomain: "moneymate-1dbbd.firebaseapp.com",
+      databaseURL: "https://moneymate-1dbbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "moneymate-1dbbd",
+      storageBucket: "moneymate-1dbbd.firebasestorage.app",
+      messagingSenderId: "273661692942",
+      appId: "1:273661692942:web:243330cf43b65a3ebfc05f",
+      measurementId: "G-G53GNBR685"
+    };
 
-    document.getElementById('total-income').textContent = `₱ ${totalIncome.toFixed(2)}`;
-    document.getElementById('total-expenses').textContent = `₱ ${totalExpenses.toFixed(2)}`;
-    document.getElementById('remaining-balance').textContent = `₱ ${remainingBalance.toFixed(2)}`;
-    document.getElementById('transaction-count').textContent = transactionCount;
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
 
-    // Add recent transactions dynamically
-    const transactions = [
-      { category: "Food", date: "2025-04-25", amount: 500, note: "Lunch" },
-      { category: "Transport", date: "2025-04-24", amount: 200, note: "Bus fare" },
-      // Add more transactions here
-    ];
-
+    // DOM Elements
+    const totalIncomeDisplay = document.getElementById('total-income');
+    const totalExpensesDisplay = document.getElementById('total-expenses');
+    const remainingBalanceDisplay = document.getElementById('remaining-balance');
+    const transactionCountDisplay = document.getElementById('transaction-count');
     const transactionsTableBody = document.getElementById('recent-transactions');
-    transactions.forEach(transaction => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${transaction.category}</td>
-        <td>${transaction.date}</td>
-        <td>₱ ${transaction.amount.toFixed(2)}</td>
-        <td>${transaction.note || '—'}</td>
-      `;
-      transactionsTableBody.appendChild(tr);
+    const loadingTransactions = document.getElementById('loading-transactions');
+
+    // Chart variables
+    let expenseChart = null;
+
+    // Variables to store data
+    let currentUser = null;
+    let userIncome = 0;
+    let userExpenses = [];
+
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadUserData();
+      } else {
+        alert('Please sign in to access the dashboard');
+        window.location.href = 'login.html';
+      }
     });
 
+    // Load user data from Firebase
+    function loadUserData() {
+      loadingTransactions.style.display = 'flex';
+      
+      // Load income
+      database.ref('users/' + currentUser.uid + '/income').once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          userIncome = snapshot.val();
+          totalIncomeDisplay.textContent = `₱ ${userIncome.toFixed(2)}`;
+          updateRemainingBalance();
+        }
+      });
+
+      // Load expenses
+      database.ref('users/' + currentUser.uid + '/expenses').on('value', snapshot => {
+        userExpenses = [];
+        transactionsTableBody.innerHTML = '';
+        
+        if (snapshot.exists()) {
+          snapshot.forEach(childSnapshot => {
+            const expense = childSnapshot.val();
+            expense.id = childSnapshot.key;
+            userExpenses.push(expense);
+          });
+          
+          // Update summary cards
+          updateSummaryCards();
+          
+          // Display recent transactions (last 5)
+          displayRecentTransactions();
+          
+          // Update chart
+          updateChart();
+        }
+        
+        loadingTransactions.style.display = 'none';
+      });
+    }
+
+    // Update summary cards
+    function updateSummaryCards() {
+      const totalExpenses = userExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const remainingBalance = userIncome - totalExpenses;
+      
+      totalExpensesDisplay.textContent = `₱ ${totalExpenses.toFixed(2)}`;
+      remainingBalanceDisplay.textContent = `₱ ${remainingBalance.toFixed(2)}`;
+      transactionCountDisplay.textContent = userExpenses.length;
+    }
+
+    // Display recent transactions (last 5)
+    function displayRecentTransactions() {
+      const sortedTransactions = [...userExpenses].sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+      
+      const recentTransactions = sortedTransactions.slice(0, 5);
+      
+      transactionsTableBody.innerHTML = '';
+      
+      recentTransactions.forEach(transaction => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${transaction.category}</td>
+          <td>${transaction.date}</td>
+          <td>₱ ${transaction.amount.toFixed(2)}</td>
+          <td>${transaction.note || '—'}</td>
+        `;
+        transactionsTableBody.appendChild(tr);
+      });
+    }
+
+    // Update chart with expense categories
+    function updateChart() {
+      const categories = {};
+      userExpenses.forEach(expense => {
+        if (!categories[expense.category]) {
+          categories[expense.category] = 0;
+        }
+        categories[expense.category] += expense.amount;
+      });
+      
+      const labels = Object.keys(categories);
+      const data = Object.values(categories);
+      
+      const backgroundColors = [
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+        'rgba(199, 199, 199, 0.7)'
+      ];
+      
+      const ctx = document.getElementById('expenseChart').getContext('2d');
+      
+      if (expenseChart) {
+        expenseChart.destroy();
+      }
+      
+      expenseChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: backgroundColors,
+            borderColor: 'rgba(255, 255, 255, 0.8)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#d0d0d0',
+                font: {
+                  size: 14
+                },
+                padding: 15
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleFont: { size: 14 },
+              bodyFont: { size: 12 },
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ₱${value.toFixed(2)} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Update remaining balance
+    function updateRemainingBalance() {
+      const totalExpenses = userExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const remainingBalance = userIncome - totalExpenses;
+      remainingBalanceDisplay.textContent = `₱ ${remainingBalance.toFixed(2)}`;
+    }
+
+    // Sidebar Toggle
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('expanded');
     }
 
+    // Highlight active menu item
+    const menuItems = document.querySelectorAll('.sidebar a');
+    menuItems.forEach(item => {
+      if (item.getAttribute('href') === 'dashboard.html') {
+        item.classList.add('active');
+      }
+      item.addEventListener('click', function() {
+        menuItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Logout functionality
     function logout() {
-      alert('Logging out...');
-      window.location.href = 'login.html';
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        alert('Error signing out: ' + error.message);
+      });
     }
   </script>
 </body>

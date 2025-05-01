@@ -4,37 +4,251 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Help & Support</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
-    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
-    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
-    .sidebar.expanded { width: 200px; }
-    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
-    .sidebar.expanded h2 { display: block; }
-    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
-    .sidebar a:hover { background: #573b8a; }
-    .sidebar i { font-size: 1.2em; }
-    .sidebar span { margin-left: 10px; display: none; }
-    .sidebar.expanded span { display: inline; }
-    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
-    .sidebar .logout-btn:hover { background: #ff3b3b; }
-    .toggle-btn { position: absolute; top: 10px; right: -25px; background: #573b8a; color: #fff; border: none; padding: 8px 10px; cursor: pointer; border-radius: 0 5px 5px 0; }
-    .main-content { margin-left: 70px; padding: 40px; flex: 1; }
-    .toggle-expanded ~ .main-content { margin-left: 200px; }
-    h1 { text-align: center; margin-bottom: 30px; font-size: 2em; }
-    .help-section { background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); }
-    .faq, .user-guides, .contact-support, .video-tutorials, .feedback { margin-bottom: 30px; }
-    h3 { font-size: 1.5em; margin-bottom: 15px; }
-    ul { list-style: none; padding: 0; }
-    ul li { margin-bottom: 10px; }
-    ul li a { color: #fff; text-decoration: none; }
-    ul li a:hover { text-decoration: underline; }
-    form input, form textarea, form button { width: 100%; padding: 12px; margin-bottom: 15px; font-size: 1em; border-radius: 5px; border: none; }
-    form input, form textarea { background: #eee; color: #000; }
-    form button { background: #573b8a; color: #fff; font-weight: bold; cursor: pointer; transition: background .3s; }
-    form button:hover { background: #6d44b8; }
+    body { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); 
+      color: #fff; 
+    }
+
+    /* Sidebar Styles */
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 70px; 
+      height: 100%; 
+      background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 30px; 
+      transition: width 0.3s; 
+      z-index: 100;
+    }
+    .sidebar.expanded { 
+      width: 200px; 
+    }
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em; 
+      text-align: center; 
+    }
+    .sidebar.expanded h2 { 
+      display: block; 
+    }
+    .sidebar a { 
+      padding: 15px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 100%; 
+      transition: background 0.3s; 
+    }
+    .sidebar a:hover { 
+      background: #573b8a; 
+    }
+    .sidebar i { 
+      font-size: 1.2em; 
+    }
+    .sidebar span { 
+      margin-left: 10px; 
+      display: none; 
+    }
+    .sidebar.expanded span { 
+      display: inline; 
+    }
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: background 0.3s; 
+    }
+    .sidebar .logout-btn:hover { 
+      background: #ff3b3b; 
+    }
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -25px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: none; 
+      padding: 8px 10px; 
+      cursor: pointer; 
+      border-radius: 0 5px 5px 0; 
+      transition: background 0.3s; 
+    }
+    .toggle-btn:hover { 
+      background: #6d44b8; 
+    }
+
+    /* Main Content */
+    .main-content { 
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left 0.3s; 
+    }
+    .toggle-expanded ~ .main-content { 
+      margin-left: 200px; 
+    }
+    h1 { 
+      text-align: center; 
+      margin-bottom: 40px; 
+      font-size: 2.5em; 
+      font-weight: 700; 
+      color: #fff; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+    }
+    .help-section { 
+      display: grid; 
+      gap: 30px; 
+      max-width: 1000px; 
+      margin: 0 auto; 
+    }
+    .faq, .user-guides, .contact-support, .video-tutorials, .feedback { 
+      background: rgba(255, 255, 255, 0.1); 
+      padding: 30px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      transition: transform 0.2s ease; 
+    }
+    .faq:hover, .user-guides:hover, .contact-support:hover, .video-tutorials:hover, .feedback:hover { 
+      transform: translateY(-5px); 
+    }
+    h3 { 
+      font-size: 1.6em; 
+      margin-bottom: 20px; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      border-bottom: 2px solid #6d44b8; 
+      padding-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    p { 
+      font-size: 1em; 
+      color: #d0d0d0; 
+      margin-bottom: 15px; 
+    }
+    ul { 
+      list-style: none; 
+      padding: 0; 
+    }
+    ul li { 
+      margin-bottom: 12px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    ul li i { 
+      color: #6d44b8; 
+    }
+    ul li a { 
+      color: #fff; 
+      text-decoration: none; 
+      font-size: 1em; 
+      transition: color 0.3s; 
+    }
+    ul li a:hover { 
+      color: #6d44b8; 
+      text-decoration: underline; 
+    }
+    form input, form textarea { 
+      width: 100%; 
+      padding: 12px 15px; 
+      margin-bottom: 15px; 
+      font-size: 1em; 
+      border-radius: 8px; 
+      border: none; 
+      background: #2a2a4a; 
+      color: #fff; 
+      transition: border-color 0.3s, background 0.3s; 
+    }
+    form input:focus, form textarea:focus { 
+      outline: none; 
+      background: #353565; 
+      border: 1px solid #6d44b8; 
+    }
+    form textarea { 
+      resize: vertical; 
+      min-height: 100px; 
+    }
+    form button { 
+      width: 100%; 
+      padding: 14px; 
+      font-size: 1.1em; 
+      border-radius: 8px; 
+      border: none; 
+      background: #6d44b8; 
+      color: #fff; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: background 0.3s, transform 0.1s; 
+    }
+    form button:hover { 
+      background: #8259d1; 
+      transform: translateY(-2px); 
+    }
+    form button:active { 
+      transform: translateY(0); 
+    }
+    .error, .success { 
+      font-size: 0.9em; 
+      margin-top: 5px; 
+      display: none; 
+    }
+    .error { 
+      color: #ff6b6b; 
+    }
+    .success { 
+      color: #4caf50; 
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .main-content { 
+        margin-left: 70px; 
+        padding: 20px; 
+      }
+      .toggle-expanded ~ .main-content { 
+        margin-left: 200px; 
+      }
+      h1 { 
+        font-size: 2em; 
+        margin-bottom: 30px; 
+      }
+      .help-section { 
+        grid-template-columns: 1fr; 
+      }
+      .faq, .user-guides, .contact-support, .video-tutorials, .feedback { 
+        padding: 20px; 
+      }
+      h3 { 
+        font-size: 1.4em; 
+        margin-bottom: 15px; 
+      }
+    }
   </style>
 </head>
 <body>
@@ -44,11 +258,11 @@
     <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
     <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
     <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
-    <a href="#" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
     <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
     <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
     <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
-    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+    <a href="help.html" title="Help & Support" class="active"><i class="fas fa-question-circle"></i><span> Help</span></a>
     <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
   </div>
 
@@ -57,67 +271,214 @@
     <div class="help-section">
       <!-- FAQ Section -->
       <div class="faq">
-        <h3>Frequently Asked Questions</h3>
+        <h3><i class="fas fa-question-circle"></i> Frequently Asked Questions</h3>
         <ul>
-          <li><a href="#">How do I manage my transactions?</a></li>
-          <li><a href="#">How can I change my password?</a></li>
-          <li><a href="#">What should I do if I forget my username?</a></li>
-          <li><a href="#">How do I calculate expenses?</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">How do I manage my transactions?</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">How can I change my password?</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">What should I do if I forget my username?</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">How do I calculate expenses?</a></li>
         </ul>
       </div>
 
       <!-- User Guides Section -->
       <div class="user-guides">
-        <h3>User Guides</h3>
+        <h3><i class="fas fa-book"></i> User Guides</h3>
         <ul>
-          <li><a href="#">Getting Started Guide</a></li>
-          <li><a href="#">Budgeting Tool Guide</a></li>
-          <li><a href="#">Advanced Features Guide</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">Getting Started Guide</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">Budgeting Tool Guide</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">Advanced Features Guide</a></li>
         </ul>
       </div>
 
       <!-- Contact Support Section -->
       <div class="contact-support">
-        <h3>Contact Support</h3>
+        <h3><i class="fas fa-headset"></i> Contact Support</h3>
         <p>If you need assistance, feel free to reach out to our support team.</p>
-        <form action="submit-ticket">
-          <input type="text" placeholder="Your Name" required />
-          <input type="email" placeholder="Your Email" required />
-          <textarea placeholder="Describe your issue" required></textarea>
+        <form id="support-form">
+          <input type="text" id="support-name" placeholder="Your Name" required />
+          <span class="error" id="support-name-error">Name is required.</span>
+          <input type="email" id="support-email" placeholder="Your Email" required />
+          <span class="error" id="support-email-error">Please enter a valid email.</span>
+          <textarea id="support-message" placeholder="Describe your issue" required></textarea>
+          <span class="error" id="support-message-error">Message is required.</span>
           <button type="submit">Submit</button>
+          <span class="success" id="support-success">Support ticket submitted successfully!</span>
         </form>
       </div>
 
       <!-- Video Tutorials Section -->
       <div class="video-tutorials">
-        <h3>Video Tutorials</h3>
+        <h3><i class="fas fa-video"></i> Video Tutorials</h3>
         <ul>
-          <li><a href="#">How to create a new transaction</a></li>
-          <li><a href="#">How to set up your budget</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">How to create a new transaction</a></li>
+          <li><i class="fas fa-chevron-right"></i><a href="#">How to set up your budget</a></li>
         </ul>
       </div>
 
       <!-- Feedback Section -->
       <div class="feedback">
-        <h3>Provide Feedback</h3>
+        <h3><i class="fas fa-comment-dots"></i> Provide Feedback</h3>
         <p>We value your feedback. Let us know how we can improve the app.</p>
-        <form action="submit-feedback">
-          <textarea placeholder="Your feedback" required></textarea>
+        <form id="feedback-form">
+          <textarea id="feedback-message" placeholder="Your feedback" required></textarea>
+          <span class="error" id="feedback-message-error">Feedback is required.</span>
           <button type="submit">Submit Feedback</button>
+          <span class="success" id="feedback-success">Feedback submitted successfully!</span>
         </form>
       </div>
     </div>
   </div>
 
   <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm81SKSxFhG6U43vMTtgVPd3W4N_rEnEE",
+      authDomain: "moneymate-1dbbd.firebaseapp.com",
+      databaseURL: "https://moneymate-1dbbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "moneymate-1dbbd",
+      storageBucket: "moneymate-1dbbd.firebasestorage.app",
+      messagingSenderId: "273661692942",
+      appId: "1:273661692942:web:243330cf43b65a3ebfc05f",
+      measurementId: "G-G53GNBR685"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const supportForm = document.getElementById('support-form');
+    const supportName = document.getElementById('support-name');
+    const supportEmail = document.getElementById('support-email');
+    const supportMessage = document.getElementById('support-message');
+    const supportNameError = document.getElementById('support-name-error');
+    const supportEmailError = document.getElementById('support-email-error');
+    const supportMessageError = document.getElementById('support-message-error');
+    const supportSuccess = document.getElementById('support-success');
+    const feedbackForm = document.getElementById('feedback-form');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const feedbackMessageError = document.getElementById('feedback-message-error');
+    const feedbackSuccess = document.getElementById('feedback-success');
+
+    let currentUser = null;
+
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        supportEmail.value = user.email; // Pre-fill email
+        supportEmail.disabled = true; // Disable email field
+      } else {
+        alert('Please sign in to access help & support');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Validate and submit support form
+    supportForm.addEventListener('submit', e => {
+      e.preventDefault();
+      let isValid = true;
+
+      // Reset error messages
+      supportNameError.style.display = 'none';
+      supportEmailError.style.display = 'none';
+      supportMessageError.style.display = 'none';
+      supportSuccess.style.display = 'none';
+
+      // Validate form
+      if (!supportName.value.trim()) {
+        supportNameError.style.display = 'block';
+        isValid = false;
+      }
+      if (!supportEmail.value || !/^\S+@\S+\.\S+$/.test(supportEmail.value)) {
+        supportEmailError.style.display = 'block';
+        isValid = false;
+      }
+      if (!supportMessage.value.trim()) {
+        supportMessageError.style.display = 'block';
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // Submit to Firebase
+      const ticket = {
+        userId: currentUser.uid,
+        name: supportName.value.trim(),
+        email: supportEmail.value,
+        message: supportMessage.value.trim(),
+        timestamp: Date.now()
+      };
+      database.ref('supportTickets').push(ticket)
+        .then(() => {
+          supportSuccess.style.display = 'block';
+          supportForm.reset();
+          supportEmail.value = currentUser.email; // Reset email field
+        })
+        .catch(error => {
+          alert('Error submitting support ticket: ' + error.message);
+        });
+    });
+
+    // Validate and submit feedback form
+    feedbackForm.addEventListener('submit', e => {
+      e.preventDefault();
+      let isValid = true;
+
+      // Reset error messages
+      feedbackMessageError.style.display = 'none';
+      feedbackSuccess.style.display = 'none';
+
+      // Validate form
+      if (!feedbackMessage.value.trim()) {
+        feedbackMessageError.style.display = 'block';
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // Submit to Firebase
+      const feedback = {
+        userId: currentUser.uid,
+        message: feedbackMessage.value.trim(),
+        timestamp: Date.now()
+      };
+      database.ref('feedback').push(feedback)
+        .then(() => {
+          feedbackSuccess.style.display = 'block';
+          feedbackForm.reset();
+        })
+        .catch(error => {
+          alert('Error submitting feedback: ' + error.message);
+        });
+    });
+
+    // Toggle Sidebar
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('expanded');
+      sidebar.classList.toggle('expanded');
     }
 
+    // Logout
     function logout() {
-      alert('Logging out...');
-      window.location.href = 'login.html';
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        alert('Error signing out: ' + error.message);
+      });
     }
+
+    // Highlight active menu item
+    const menuItems = document.querySelectorAll('.sidebar a');
+    menuItems.forEach(item => {
+      if (item.getAttribute('href') === 'help.html') {
+        item.classList.add('active');
+      }
+      item.addEventListener('click', function() {
+        menuItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
   </script>
 </body>
 </html>

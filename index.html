@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MoneyMate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+    body { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); 
+      color: #fff; 
+    }
+
+    /* Sidebar Styles */
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 70px; 
+      height: 100%; 
+      background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 50px; 
+      transition: width 0.3s ease; 
+      z-index: 100;
+    }
+    .sidebar.expanded { 
+      width: 200px; 
+      align-items: flex-start; 
+      padding-left: 20px; 
+    }
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em; 
+      text-align: center; 
+      width: 100%; 
+    }
+    .sidebar.expanded h2 { 
+      display: block; 
+    }
+    .sidebar a { 
+      padding: 15px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      width: 100%; 
+      transition: background 0.3s; 
+    }
+    .sidebar a:hover { 
+      background: #573b8a; 
+    }
+    .sidebar a.active {
+      background: #6d44b8;
+    }
+    .sidebar i { 
+      font-size: 1.2em; 
+      width: 30px; 
+      text-align: center; 
+    }
+    .sidebar span { 
+      display: none; 
+      margin-left: 10px; 
+    }
+    .sidebar.expanded span { 
+      display: inline; 
+    }
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: background 0.3s; 
+    }
+    .sidebar .logout-btn:hover { 
+      background: #ff3b3b; 
+    }
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -30px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: 2px solid #6d44b8; 
+      padding: 8px 12px; 
+      cursor: pointer; 
+      border-radius: 0 8px 8px 0; 
+      transition: background 0.3s, transform 0.2s; 
+      z-index: 101; 
+      font-size: 1.2em; 
+      line-height: 1; 
+    }
+    .toggle-btn:hover { 
+      background: #6d44b8; 
+      transform: translateX(2px); 
+    }
+
+    /* Main Content */
+    .main-content { 
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left 0.3s; 
+    }
+    .toggle-expanded ~ .main-content { 
+      margin-left: 200px; 
+    }
+    
+    /* Content Styles */
+    h1 { 
+      text-align: center; 
+      margin-bottom: 40px; 
+      font-size: 2.5em; 
+      font-weight: 700; 
+      color: #e0e0e0; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+    }
+    .content-wrapper { 
+      display: flex; 
+      gap: 30px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+    
+    /* Panels */
+    .left-panel { 
+      width: 60%; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px; 
+    }
+    .right-panel { 
+      width: 35%; 
+      position: sticky; 
+      top: 40px; 
+      max-height: calc(100vh - 80px); 
+      background: rgba(255,255,255,0.1); 
+      border-radius: 12px; 
+      padding: 20px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+    }
+    
+    /* Sections */
+    .section { 
+      background: rgba(255,255,255,0.1); 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      transition: transform 0.2s ease; 
+    }
+    .section:hover { 
+      transform: translateY(-5px); 
+    }
+    .section h3 { 
+      font-size: 1.6em; 
+      margin-bottom: 20px; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      border-bottom: 2px solid #6d44b8; 
+      padding-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    
+    /* Form Elements */
+    input, select, textarea, button { 
+      width: 100%; 
+      padding: 12px; 
+      margin-bottom: 15px; 
+      font-size: 1em; 
+      border-radius: 8px; 
+      border: none; 
+      transition: all 0.3s; 
+    }
+    input, select, textarea { 
+      background: #2a2a4a; 
+      color: #fff; 
+    }
+    input:focus, select:focus, textarea:focus { 
+      outline: none; 
+      background: #353565; 
+      border: 1px solid #6d44b8; 
+    }
+    input:invalid:not(:placeholder-shown), select:invalid:not(:placeholder-shown) { 
+      border: 1px solid #ff6b6b; 
+    }
+    textarea { 
+      resize: vertical; 
+      min-height: 80px; 
+    }
+    button { 
+      background: #6d44b8; 
+      color: #fff; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: background 0.3s, transform 0.1s; 
+    }
+    button:hover { 
+      background: #8259d1; 
+      transform: translateY(-2px); 
+    }
+    button:active { 
+      transform: translateY(0); 
+    }
+    .cancel-btn { 
+      background: #ff6b6b; 
+    }
+    .cancel-btn:hover { 
+      background: #ff3b3b; 
+    }
+    
+    /* Summary */
+    .summary { 
+      margin-top: 10px; 
+    }
+    .summary p { 
+      font-size: 1.1em; 
+      margin: 10px 0; 
+      color: #d0d0d0; 
+    }
+    .summary span { 
+      font-weight: 500; 
+      color: #e0e0e0; 
+    }
+    
+    /* Transaction Table */
+    .transaction-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: rgba(255,255,255,0.05); 
+      border-radius: 8px; 
+      overflow: hidden; 
+    }
+    .transaction-table thead { 
+      background: #573b8a; 
+    }
+    .transaction-table th { 
+      padding: 15px; 
+      text-align: left; 
+      color: #e0e0e0; 
+      font-size: 0.95em; 
+      font-weight: 500; 
+    }
+    .transaction-table th:nth-child(1) { width: 20%; } /* Category */
+    .transaction-table th:nth-child(2) { width: 20%; } /* Date */
+    .transaction-table th:nth-child(3) { width: 20%; } /* Amount */
+    .transaction-table th:nth-child(4) { width: 30%; } /* Note */
+    .transaction-table th:nth-child(5) { width: 10%; } /* Action */
+    .transaction-table tbody tr { 
+      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      transition: background 0.3s; 
+      cursor: pointer; 
+    }
+    .transaction-table tbody tr:last-child { 
+      border-bottom: none; 
+    }
+    .transaction-table tbody tr:hover { 
+      background: rgba(255,255,255,0.1); 
+    }
+    .transaction-table td { 
+      padding: 15px; 
+      color: #d0d0d0; 
+      font-size: 0.95em; 
+    }
+    .transaction-table .delete-btn { 
+      background: transparent; 
+      border: none; 
+      color: #ff6b6b; 
+      cursor: pointer; 
+      font-size: 1.2em; 
+      padding: 5px 10px; 
+      border-radius: 4px; 
+      transition: all 0.3s; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+    }
+    .transaction-table .delete-btn:hover { 
+      color: #ff3b3b; 
+      background: rgba(255, 59, 59, 0.2); 
+      transform: scale(1.2); 
+    }
+    
+    /* Edit Form Row */
+    .edit-form-row { 
+      background: rgba(255,255,255,0.1); 
+      padding: 15px; 
+    }
+    .edit-form-row select, 
+    .edit-form-row input, 
+    .edit-form-row textarea { 
+      margin-bottom: 10px; 
+      width: 100%; 
+    }
+    .edit-form-row .button-group { 
+      display: flex; 
+      gap: 10px; 
+    }
+    .edit-form-row button { 
+      width: 50%; 
+    }
+    
+    /* Stacked Layout for Small Screens */
+    @media (max-width: 768px) {
+      .transaction-table { 
+        display: block; 
+        width: 100%; 
+      }
+      .transaction-table thead { 
+        display: none; 
+      }
+      .transaction-table tbody, .transaction-table tr { 
+        display: block; 
+      }
+      .transaction-table tr { 
+        margin-bottom: 15px; 
+        border-bottom: 2px solid #6d44b8; 
+        padding-bottom: 10px; 
+      }
+      .transaction-table td { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 8px 15px; 
+        font-size: 0.9em; 
+        color: #d0d0d0; 
+        border-bottom: 1px solid rgba(255,255,255,0.1); 
+      }
+      .transaction-table td:last-child { 
+        border-bottom: none; 
+      }
+      .transaction-table td::before { 
+        content: attr(data-label); 
+        font-weight: 500; 
+        color: #e0e0e0; 
+        width: 40%; 
+      }
+      .transaction-table td .delete-btn { 
+        margin-left: auto; 
+      }
+      .edit-form-row { 
+        padding: 10px; 
+      }
+      .edit-form-row button { 
+        width: 100%; 
+      }
+      .edit-form-row .button-group { 
+        flex-direction: column; 
+        gap: 5px; 
+      }
+    }
+    
+    /* Loading State */
+    .loading { 
+      color: #fff; 
+      text-align: center; 
+      margin: 20px 0; 
+      font-size: 1.2em; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 10px; 
+    }
+    .loading i { 
+      animation: spin 1s linear infinite; 
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .hidden { display: none; }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 70px;
+        padding: 20px;
+      }
+      .toggle-expanded ~ .main-content { 
+        margin-left: 200px; 
+      }
+      .content-wrapper { 
+        flex-direction: column; 
+        gap: 20px; 
+      }
+      .left-panel, .right-panel { 
+        width: 100%; 
+      }
+      .right-panel { 
+        position: static; 
+        max-height: none; 
+        padding: 15px; 
+      }
+      h1 { 
+        font-size: 2em; 
+        margin-bottom: 30px; 
+      }
+      .section { 
+        padding: 20px; 
+      }
+      .section h3 { 
+        font-size: 1.4em; 
+      }
+      input, select, textarea, button { 
+        padding: 10px; 
+        font-size: 0.95em; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>MENU</h2>
+    <a href="#" class="active"><i class="fas fa-home"></i><span>Home</span></a>
+    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span>Profile</span></a>
+    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span>Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span>Reports</span></a>
+    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span>Budget</span></a>
+    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span>Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1>Expense Tracker</h1>
+    <div class="content-wrapper">
+      <div class="left-panel">
+        <div class="section" id="income-section">
+          <h3><i class="fas fa-money-bill-wave"></i> Income</h3>
+          <input type="number" id="income-input" placeholder="Enter Monthly Income" min="0" step="0.01" required />
+          <button id="save-income-btn">Save Income</button>
+          <div class="summary">
+            <p>Total Income: <span id="total-income">₱ 0.00</span></p>
+          </div>
+        </div>
+        <div class="section" id="expense-section">
+          <h3><i class="fas fa-plus-circle"></i> Add Expense</h3>
+          <select id="category" required>
+            <option value="" disabled selected>-- Category --</option>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Bills</option>
+            <option>Entertainment</option>
+            <option>Other</option>
+          </select>
+          <input type="number" id="amount" placeholder="Amount" min="0" step="0.01" required>
+          <input type="date" id="date" required>
+          <textarea id="note" placeholder="Notes (optional)"></textarea>
+          <button id="add-expense-btn">Add Expense</button>
+        </div>
+        <div class="section" id="calculate-section">
+          <h3><i class="fas fa-calculator"></i> Expenses Summary</h3>
+          <div class="summary">
+            <p>Total Expenses: <span id="total-expenses">₱ 0.00</span></p>
+            <p>Remaining Balance: <span id="remaining-balance">₱ 0.00</span></p>
+          </div>
+          <select id="calculate-timeframe">
+            <option value="monthly">Monthly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+          <button id="calculate-btn">Calculate</button>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div id="loading" class="loading">
+          <i class="fas fa-spinner"></i> Loading transactions...
+        </div>
+        <table class="transaction-table" id="transaction-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Note</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm81SKSxFhG6U43vMTtgVPd3W4N_rEnEE",
+      authDomain: "moneymate-1dbbd.firebaseapp.com",
+      databaseURL: "https://moneymate-1dbbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "moneymate-1dbbd",
+      storageBucket: "moneymate-1dbbd.firebasestorage.app",
+      messagingSenderId: "273661692942",
+      appId: "1:273661692942:web:243330cf43b65a3ebfc05f",
+      measurementId: "G-G53GNBR685"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
+
+    // DOM Elements
+    const incomeInput = document.getElementById('income-input');
+    const saveIncomeBtn = document.getElementById('save-income-btn');
+    const totalIncomeDisplay = document.getElementById('total-income');
+    const categorySelect = document.getElementById('category');
+    const amountInput = document.getElementById('amount');
+    const dateInput = document.getElementById('date');
+    const noteInput = document.getElementById('note');
+    const addExpenseBtn = document.getElementById('add-expense-btn');
+    const totalExpensesDisplay = document.getElementById('total-expenses');
+    const remainingBalanceDisplay = document.getElementById('remaining-balance');
+    const timeframeSelect = document.getElementById('calculate-timeframe');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const transactionsTable = document.getElementById('transaction-table').getElementsByTagName('tbody')[0];
+    const loadingElement = document.getElementById('loading');
+
+    // Set default date to today
+    dateInput.valueAsDate = new Date();
+
+    // Variables to store data
+    let currentUser = null;
+    let userIncome = 0;
+    let userExpenses = [];
+    let totalExpenses = 0;
+    let editingRow = null;
+
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadUserData();
+      } else {
+        alert('Please sign in to access the expense tracker');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Load user data from Firebase
+    function loadUserData() {
+      loadingElement.style.display = 'flex';
+      
+      // Load income
+      database.ref('users/' + currentUser.uid + '/income').once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          userIncome = snapshot.val();
+          incomeInput.value = userIncome;
+          totalIncomeDisplay.textContent = `₱ ${userIncome.toFixed(2)}`;
+        }
+      });
+
+      // Load expenses
+      database.ref('users/' + currentUser.uid + '/expenses').on('value', snapshot => {
+        userExpenses = [];
+        transactionsTable.innerHTML = '';
+        
+        if (snapshot.exists()) {
+          snapshot.forEach(childSnapshot => {
+            const expense = childSnapshot.val();
+            expense.id = childSnapshot.key;
+            userExpenses.push(expense);
+            addExpenseToTable(expense);
+          });
+          
+          calculateTotals();
+        }
+        
+        loadingElement.style.display = 'none';
+      });
+    }
+
+    // Add expense to the table
+    function addExpenseToTable(expense) {
+      const row = transactionsTable.insertRow();
+      row.setAttribute('data-id', expense.id);
+      
+      row.innerHTML = `
+        <td data-label="Category">${expense.category}</td>
+        <td data-label="Date">${expense.date}</td>
+        <td data-label="Amount">₱ ${expense.amount.toFixed(2)}</td>
+        <td data-label="Note">${expense.note || '-'}</td>
+        <td data-label="Action">
+          <button class="delete-btn" data-id="${expense.id}" aria-label="Delete expense">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </td>
+      `;
+      
+      // Add click event to row for editing
+      row.addEventListener('click', (e) => {
+        // Prevent triggering edit when clicking the delete button
+        if (e.target.closest('.delete-btn')) return;
+        editExpenseRow(expense, row);
+      });
+
+      // Add event listener to delete button
+      row.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteExpense(e.target.closest('button').getAttribute('data-id'));
+      });
+    }
+
+    // Edit expense row
+    function editExpenseRow(expense, row) {
+      // If already editing another row, remove the edit form
+      if (editingRow && editingRow !== row) {
+        const existingFormRow = editingRow.nextElementSibling;
+        if (existingFormRow && existingFormRow.classList.contains('edit-form-row')) {
+          existingFormRow.remove();
+        }
+      }
+
+      // Remove any existing edit form for this row
+      const existingFormRow = row.nextElementSibling;
+      if (existingFormRow && existingFormRow.classList.contains('edit-form-row')) {
+        existingFormRow.remove();
+        if (editingRow === row) {
+          editingRow = null;
+          return;
+        }
+      }
+
+      editingRow = row;
+
+      // Create edit form row
+      const editRow = document.createElement('tr');
+      editRow.classList.add('edit-form-row');
+      editRow.innerHTML = `
+        <td colspan="5">
+          <select id="edit-category-${expense.id}" required>
+            <option value="" disabled>-- Category --</option>
+            <option value="Food" ${expense.category === 'Food' ? 'selected' : ''}>Food</option>
+            <option value="Transport" ${expense.category === 'Transport' ? 'selected' : ''}>Transport</option>
+            <option value="Bills" ${expense.category === 'Bills' ? 'selected' : ''}>Bills</option>
+            <option value="Entertainment" ${expense.category === 'Entertainment' ? 'selected' : ''}>Entertainment</option>
+            <option value="Other" ${expense.category === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+          <input type="number" id="edit-amount-${expense.id}" value="${expense.amount}" placeholder="Amount" min="0" step="0.01" required>
+          <input type="date" id="edit-date-${expense.id}" value="${expense.date}" required>
+          <textarea id="edit-note-${expense.id}" placeholder="Notes (optional)">${expense.note || ''}</textarea>
+          <div class="button-group">
+            <button onclick="updateExpense('${expense.id}')">Update</button>
+            <button class="cancel-btn" onclick="cancelEdit('${expense.id}')">Cancel</button>
+          </div>
+        </td>
+      `;
+
+      // Insert edit form row after the clicked row
+      row.insertAdjacentElement('afterend', editRow);
+    }
+
+    // Update expense in Firebase
+    function updateExpense(expenseId) {
+      const category = document.getElementById(`edit-category-${expenseId}`).value;
+      const amount = parseFloat(document.getElementById(`edit-amount-${expenseId}`).value);
+      const date = document.getElementById(`edit-date-${expenseId}`).value;
+      const note = document.getElementById(`edit-note-${expenseId}`).value;
+
+      if (!category) {
+        alert('Please select a category');
+        return;
+      }
+
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+
+      if (!date) {
+        alert('Please select a date');
+        return;
+      }
+
+      const updatedExpense = {
+        category,
+        amount,
+        date,
+        note,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      database.ref('users/' + currentUser.uid + '/expenses/' + expenseId).update(updatedExpense)
+        .then(() => {
+          alert('Expense updated successfully!');
+          cancelEdit(expenseId); // Close the edit form
+        })
+        .catch(error => {
+          console.error('Error updating expense:', error);
+          alert('Error updating expense. Please try again.');
+        });
+    }
+
+    // Cancel editing
+    function cancelEdit(expenseId) {
+      const row = transactionsTable.querySelector(`tr[data-id="${expenseId}"]`);
+      const editRow = row.nextElementSibling;
+      if (editRow && editRow.classList.contains('edit-form-row')) {
+        editRow.remove();
+      }
+      editingRow = null;
+    }
+
+    // Save income to Firebase
+    saveIncomeBtn.addEventListener('click', () => {
+      const income = parseFloat(incomeInput.value);
+      
+      if (isNaN(income) || income <= 0) {
+        alert('Please enter a valid income amount');
+        return;
+      }
+      
+      database.ref('users/' + currentUser.uid).update({
+        income: income
+      }).then(() => {
+        userIncome = income;
+        totalIncomeDisplay.textContent = `₱ ${income.toFixed(2)}`;
+        calculateTotals();
+        alert('Income saved successfully!');
+      }).catch(error => {
+        console.error('Error saving income:', error);
+        alert('Error saving income. Please try again.');
+      });
+    });
+
+    // Add new expense
+    addExpenseBtn.addEventListener('click', () => {
+      const category = categorySelect.value;
+      const amount = parseFloat(amountInput.value);
+      const date = dateInput.value;
+      const note = noteInput.value;
+      
+      if (!category) {
+        alert('Please select a category');
+        return;
+      }
+      
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+      
+      if (!date) {
+        alert('Please select a date');
+        return;
+      }
+      
+      const newExpense = {
+        category,
+        amount,
+        date,
+        note,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+      
+      database.ref('users/' + currentUser.uid + '/expenses').push(newExpense)
+        .then(() => {
+          amountInput.value = '';
+          noteInput.value = '';
+          dateInput.valueAsDate = new Date();
+        })
+        .catch(error => {
+          console.error('Error adding expense:', error);
+          alert('Error adding expense. Please try again.');
+        });
+    });
+
+    // Delete expense
+    function deleteExpense(expenseId) {
+      if (confirm('Are you sure you want to delete this expense?')) {
+        database.ref('users/' + currentUser.uid + '/expenses/' + expenseId).remove()
+          .catch(error => {
+            console.error('Error deleting expense:', error);
+            alert('Error deleting expense. Please try again.');
+          });
+      }
+    }
+
+    // Calculate totals
+    function calculateTotals() {
+      totalExpenses = userExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const remainingBalance = userIncome - totalExpenses;
+      
+      totalExpensesDisplay.textContent = `₱ ${totalExpenses.toFixed(2)}`;
+      remainingBalanceDisplay.textContent = `₱ ${remainingBalance.toFixed(2)}`;
+    }
+
+    // Calculate by timeframe
+    calculateBtn.addEventListener('click', () => {
+      const timeframe = timeframeSelect.value;
+      let filteredExpenses = [];
+      const now = new Date();
+      
+      if (timeframe === 'monthly') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        filteredExpenses = userExpenses.filter(expense => {
+          const expenseDate = new Date(expense.date);
+          return expenseDate >= firstDay && expenseDate <= now;
+        });
+      } else { // weekly
+        const firstDay = new Date(now);
+        firstDay.setDate(now.getDate() - now.getDay());
+        filteredExpenses = userExpenses.filter(expense => {
+          const expenseDate = new Date(expense.date);
+          return expenseDate >= firstDay && expenseDate <= now;
+        });
+      }
+      
+      const timeframeTotal = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      alert(`Total ${timeframe} expenses: ₱ ${timeframeTotal.toFixed(2)}`);
+    });
+
+    // Sidebar Toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
+
+    // Highlight active menu item
+    const menuItems = document.querySelectorAll('.sidebar a');
+    menuItems.forEach(item => {
+      if (item.getAttribute('href') === '#') {
+        item.classList.add('active');
+      }
+      item.addEventListener('click', function() {
+        menuItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Logout functionality
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        alert('Error signing out: ' + error.message);
+      });
+    }
+  </script>
+</body>
+</html>

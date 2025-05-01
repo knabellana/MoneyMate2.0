@@ -4,201 +4,671 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Settings - Transaction Manager</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
-    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
-    .sidebar { position: fixed; left: 0; top: 0; width: 70px; height: 100%; background: #111; display: flex; flex-direction: column; align-items: center; padding-top: 30px; transition: width .3s; }
-    .sidebar.expanded { width: 200px; }
-    .sidebar h2 { display: none; color: #fff; margin-bottom: 30px; font-size: 1.5em; }
-    .sidebar.expanded h2 { display: block; }
-    .sidebar a { padding: 15px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; transition: background .3s; }
-    .sidebar a:hover { background: #573b8a; }
-    .sidebar i { font-size: 1.2em; }
-    .sidebar span { margin-left: 10px; display: none; }
-    .sidebar.expanded span { display: inline; }
-    .sidebar .logout-btn { margin-top: auto; padding: 15px; background: #ff6b6b; color: white; font-size: 1.1em; border: none; width: 100%; text-align: center; cursor: pointer; }
-    .sidebar .logout-btn:hover { background: #ff3b3b; }
-    .toggle-btn { position: absolute; top:10px; right:-25px; background:#573b8a; color:#fff; border:none; padding:8px 10px; cursor:pointer; border-radius:0 5px 5px 0; }
-    .main-content { margin-left:70px; padding:40px; flex:1; }
-    .toggle-expanded ~ .main-content { margin-left:200px; }
-    h1 { text-align: center; margin-bottom:30px; font-size:2em; }
-    .section { background:rgba(255,255,255,0.1); padding:25px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.5); margin-bottom:20px; }
-    .section h3 { font-size:1.5em; margin-bottom:15px; }
-    input, select, textarea, button { width:100%; padding:12px; margin-bottom:15px; font-size:1em; border-radius:5px; border:none; }
-    input, select, textarea { background:#eee; color:#000; }
-    button { background:#573b8a; color:#fff; font-weight:bold; cursor:pointer; transition:background .3s; }
-    button:hover { background:#6d44b8; }
-    .settings-table { width:100%; border-collapse:collapse; background:rgba(255,255,255,0.1); box-shadow:0 0 10px rgba(0,0,0,0.3); border-radius:8px; overflow:hidden; }
-    .settings-table th, .settings-table td { padding:12px 15px; text-align:left; color:#fff; }
-    .settings-table thead { background:#573b8a; }
-    .settings-table td i { font-size:1.2em; cursor:pointer; color:#ff6b6b; }
-    .settings-table td i:hover { transform:scale(1.2); }
-    @media(min-width:768px){
-      .content-wrapper { display:flex; gap:20px; }
-      .left-panel { width:60%; }
-      .right-panel { width:35%; position:sticky; top:40px; }
-      .section { margin:0 0 20px 0; }
+    body { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); 
+      color: #fff; 
+    }
+
+    /* Sidebar Styles */
+    .sidebar { 
+      position: fixed; 
+      left: -250px;
+      top: 0; 
+      width: 250px; 
+      height: 100%; 
+      background: #111; 
+      z-index: 100;
+      transition: left 0.3s ease;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #333;
+      text-align: center;
+    }
+    
+    .sidebar-header h2 {
+      color: #fff;
+      font-size: 1.5em;
+      margin-bottom: 5px;
+    }
+    
+    .menu-items {
+      flex: 1;
+      padding: 15px 0;
+      overflow-y: auto;
+    }
+    
+    .menu-items a {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: #fff;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    
+    .menu-items a i {
+      width: 30px;
+      text-align: center;
+      margin-right: 10px;
+    }
+    
+    .menu-items a:hover {
+      background: #573b8a;
+    }
+    
+    .menu-items a.active {
+      background: #6d44b8;
+    }
+    
+    /* Toggle Button */
+    .toggle-btn {
+      position: fixed;
+      left: 20px;
+      top: 20px;
+      background: #573b8a;
+      color: #fff;
+      border: none;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 5px;
+      z-index: 101;
+      transition: left 0.3s ease, background 0.3s;
+    }
+    
+    .toggle-btn:hover {
+      background: #6d44b8;
+    }
+    
+    /* When sidebar is open */
+    .sidebar.open {
+      left: 0;
+    }
+    
+    .sidebar.open ~ .main-content {
+      margin-left: 250px;
+    }
+    
+    .sidebar.open ~ .toggle-btn {
+      left: 270px;
+    }
+    
+    /* Main Content Styles */
+    .main-content { 
+      flex: 1;
+      padding: 40px;
+      transition: margin-left 0.3s ease;
+    }
+    
+    h1 { 
+      text-align: center; 
+      margin-bottom: 40px; 
+      font-size: 2.5em; 
+      font-weight: 700; 
+      color: #fff; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .content-wrapper {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    .right-panel {
+      position: sticky;
+      top: 40px;
+      align-self: start;
+    }
+    
+    .section {
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+    
+    .section:hover {
+      transform: translateY(-5px);
+    }
+    
+    .section h3 {
+      font-size: 1.6em;
+      margin-bottom: 25px;
+      font-weight: 500;
+      color: #e0e0e0;
+      border-bottom: 2px solid #6d44b8;
+      padding-bottom: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-size: 1.1em;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      background: #2a2a4a;
+      color: #fff;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      background: #353565;
+      border: 1px solid #6d44b8;
+    }
+    
+    input:disabled {
+      background: #1a1a3a;
+      color: #888;
+      cursor: not-allowed;
+    }
+    
+    .error {
+      color: #ff6b6b;
+      font-size: 0.9em;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      background: #6d44b8;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+    }
+    
+    button:hover {
+      background: #8259d1;
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .checkbox-group, .select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .checkbox-group label, .select-group label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1em;
+      color: #d0d0d0;
+    }
+    
+    .settings-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .settings-table th, .settings-table td {
+      padding: 15px 20px;
+      text-align: left;
+      color: #fff;
+    }
+    
+    .settings-table thead {
+      background: #6d44b8;
+    }
+    
+    .settings-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .settings-table tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    .settings-table td i {
+      font-size: 1.2em;
+      cursor: pointer;
+      color: #ff6b6b;
+      transition: transform 0.2s, color 0.3s;
+    }
+    
+    .settings-table td i:hover {
+      transform: scale(1.2);
+      color: #ff8787;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .content-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .right-panel {
+        position: static;
+      }
+      .main-content {
+        padding: 20px;
+      }
+      h1 {
+        font-size: 2em;
+        margin-bottom: 30px;
+      }
+      .section {
+        padding: 20px;
+      }
+      .section h3 {
+        font-size: 1.4em;
+        margin-bottom: 20px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
-    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-    <h2>MENU</h2>
-    <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
-    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
-    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
-    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
-    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
-    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
-    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
-    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
-    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+    <div class="sidebar-header">
+      <h2>MENU</h2>
+    </div>
+    
+    <div class="menu-items">
+      <a href="Menu.html"><i class="fas fa-home"></i> Home</a>
+      <a href="Profile.html"><i class="fas fa-user"></i> Profile</a>
+      <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="transactions.html"><i class="fas fa-list"></i> Transactions</a>
+      <a href="viewreports.html"><i class="fas fa-chart-pie"></i> Reports</a>
+      <a href="budget.html"><i class="fas fa-wallet"></i> Budget</a>
+      <a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a>
+      <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
+    </div>
+    
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
   </div>
 
+  <!-- Toggle Button -->
+  <button class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Main Content -->
   <div class="main-content">
     <h1>Settings</h1>
     <div class="content-wrapper">
       <div class="left-panel">
         <div class="section" id="profile-settings">
           <h3>Profile Settings</h3>
-          <input type="text" id="username" placeholder="Username" />
-          <input type="email" id="email" placeholder="Email" />
-          <input type="password" id="password" placeholder="Change Password" />
-          <button id="save-profile-btn">Save Changes</button>
+          <form id="profile-form">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" placeholder="Enter username" required aria-required="true">
+              <span class="error" id="username-error">Username is required.</span>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="Enter email" required aria-required="true" disabled>
+              <span class="error" id="email-error">Please enter a valid email.</span>
+            </div>
+            <div class="form-group">
+              <label for="password">Change Password</label>
+              <input type="password" id="password" placeholder="New password (optional)" aria-describedby="password-error">
+              <span class="error" id="password-error">Password must be at least 6 characters.</span>
+            </div>
+            <button type="submit" id="save-profile-btn">Save Profile Changes</button>
+          </form>
         </div>
 
         <div class="section" id="notification-settings">
           <h3>Notification Preferences</h3>
-          <label>
-            <input type="checkbox" id="email-notifications" />
-            Email Notifications
-          </label>
-          <label>
-            <input type="checkbox" id="push-notifications" />
-            Push Notifications
-          </label>
-          <button id="save-notifications-btn">Save Notifications</button>
+          <form id="notification-form">
+            <div class="checkbox-group">
+              <label>
+                <input type="checkbox" id="email-notifications" aria-label="Enable email notifications">
+                Email Notifications
+              </label>
+              <label>
+                <input type="checkbox" id="push-notifications" aria-label="Enable push notifications">
+                Push Notifications
+              </label>
+            </div>
+            <button type="submit" id="save-notifications-btn">Save Notifications</button>
+          </form>
         </div>
 
-        <div class="section" id="theme-settings">
-          <h3>Theme Customization</h3>
-          <label>
-            <input type="radio" name="theme" value="light" /> Light Mode
-          </label>
-          <label>
-            <input type="radio" name="theme" value="dark" checked /> Dark Mode
-          </label>
-          <button id="save-theme-btn">Save Theme</button>
+        <div class="section" id="currency-settings">
+          <h3>Currency Preferences</h3>
+          <form id="currency-form">
+            <div class="form-group">
+              <label for="currency">Preferred Currency</label>
+              <select id="currency" aria-label="Select preferred currency">
+                <option value="PHP">Philippine Peso (PHP)</option>
+                <option value="USD">US Dollar (USD)</option>
+                <option value="EUR">Euro (EUR)</option>
+                <option value="JPY">Japanese Yen (JPY)</option>
+                <option value="GBP">British Pound (GBP)</option>
+              </select>
+            </div>
+            <button type="submit" id="save-currency-btn">Save Currency</button>
+          </form>
         </div>
 
         <div class="section" id="privacy-settings">
           <h3>Privacy & Security</h3>
+          <div class="form-group">
+            <label for="recovery-email">Recovery Email</label>
+            <input type="email" id="recovery-email" placeholder="Enter recovery email" aria-describedby="recovery-email-error">
+            <span class="error" id="recovery-email-error">Please enter a valid email.</span>
+          </div>
+          <button id="set-recovery-btn">Set Recovery Email</button>
           <button id="enable-2fa-btn">Enable Two-Factor Authentication</button>
-          <button id="set-recovery-btn">Set Account Recovery Options</button>
         </div>
       </div>
 
       <div class="right-panel">
-        <table class="settings-table">
-          <thead>
-            <tr>
-              <th>Setting</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Account Recovery</td>
-              <td><i class="fas fa-edit" title="Edit Recovery Options" onclick="editRecoveryOptions()"></i></td>
-            </tr>
-            <tr>
-              <td>Change Email</td>
-              <td><i class="fas fa-edit" title="Edit Email" onclick="editEmail()"></i></td>
-            </tr>
-            <tr>
-              <td>Change Password</td>
-              <td><i class="fas fa-edit" title="Edit Password" onclick="editPassword()"></i></td>
-            </tr>
-            <tr>
-              <td>Notifications</td>
-              <td><i class="fas fa-bell" title="Edit Notifications" onclick="editNotifications()"></i></td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="section">
+          <h3>Quick Actions</h3>
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th>Setting</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Account Recovery</td>
+                <td><i class="fas fa-edit" title="Edit Recovery Options" data-action="recovery-email" aria-label="Edit recovery email"></i></td>
+              </tr>
+              <tr>
+                <td>Change Email</td>
+                <td><i class="fas fa-edit" title="Edit Email" data-action="email" aria-label="Edit email"></i></td>
+              </tr>
+              <tr>
+                <td>Change Password</td>
+                <td><i class="fas fa-edit" title="Edit Password" data-action="password" aria-label="Edit password"></i></td>
+              </tr>
+              <tr>
+                <td>Notifications</td>
+                <td><i class="fas fa-bell" title="Edit Notifications" data-action="notifications" aria-label="Edit notifications"></i></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('expanded');
-    }
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm81SKSxFhG6U43vMTtgVPd3W4N_rEnEE",
+      authDomain: "moneymate-1dbbd.firebaseapp.com",
+      databaseURL: "https://moneymate-1dbbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "moneymate-1dbbd",
+      storageBucket: "moneymate-1dbbd.firebasestorage.app",
+      messagingSenderId: "273661692942",
+      appId: "1:273661692942:web:243330cf43b65a3ebfc05f",
+      measurementId: "G-G53GNBR685"
+    };
 
-    function logout() {
-      alert('Logging out...');
-      window.location.href = 'login.html';
-    }
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
 
-    // Profile Settings
-    document.getElementById('save-profile-btn').addEventListener('click', () => {
-      const username = document.getElementById('username').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      if (username && email && password) {
-        alert('Profile changes saved!');
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const profileForm = document.getElementById('profile-form');
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const usernameError = document.getElementById('username-error');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    const notificationForm = document.getElementById('notification-form');
+    const emailNotifications = document.getElementById('email-notifications');
+    const pushNotifications = document.getElementById('push-notifications');
+    const currencyForm = document.getElementById('currency-form');
+    const currencySelect = document.getElementById('currency');
+    const recoveryEmailInput = document.getElementById('recovery-email');
+    const recoveryEmailError = document.getElementById('recovery-email-error');
+    const setRecoveryBtn = document.getElementById('set-recovery-btn');
+    const enable2faBtn = document.getElementById('enable-2fa-btn');
+
+    let currentUser = null;
+
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadUserSettings();
       } else {
-        alert('Please fill out all fields.');
+        alert('Please sign in to access settings');
+        window.location.href = 'login.html';
       }
     });
 
-    // Notification Settings
-    document.getElementById('save-notifications-btn').addEventListener('click', () => {
-      const emailNotifications = document.getElementById('email-notifications').checked;
-      const pushNotifications = document.getElementById('push-notifications').checked;
-      alert(`Email Notifications: ${emailNotifications ? 'Enabled' : 'Disabled'}\nPush Notifications: ${pushNotifications ? 'Enabled' : 'Disabled'}`);
-    });
+    // Load user settings from Firebase
+    function loadUserSettings() {
+      // Load profile data
+      database.ref('users/' + currentUser.uid + '/profile').once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          usernameInput.value = data.username || '';
+          emailInput.value = currentUser.email;
+        }
+      });
 
-    // Theme Customization
-    document.getElementById('save-theme-btn').addEventListener('click', () => {
-      const theme = document.querySelector('input[name="theme"]:checked').value;
-      if (theme === 'light') {
-        document.body.style.background = 'white';
-        document.body.style.color = 'black';
+      // Load notification preferences
+      database.ref('users/' + currentUser.uid + '/settings/notifications').once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          emailNotifications.checked = data.email || false;
+          pushNotifications.checked = data.push || false;
+        }
+      });
+
+      // Load currency preference
+      database.ref('users/' + currentUser.uid + '/settings/currency').once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          const currency = snapshot.val();
+          currencySelect.value = currency;
+        }
+      });
+
+      // Load recovery email
+      database.ref('users/' + currentUser.uid + '/settings/recoveryEmail').once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          recoveryEmailInput.value = snapshot.val();
+        }
+      });
+    }
+
+    // Validate profile form
+    function validateProfileForm() {
+      let isValid = true;
+      if (!usernameInput.value.trim()) {
+        usernameError.style.display = 'block';
+        isValid = false;
       } else {
-        document.body.style.background = 'linear-gradient(to bottom, #0f0c29, #302b63, #24243e)';
-        document.body.style.color = 'white';
+        usernameError.style.display = 'none';
       }
-      alert('Theme changed!');
+      if (passwordInput.value && passwordInput.value.length < 6) {
+        passwordError.style.display = 'block';
+        isValid = false;
+      } else {
+        passwordError.style.display = 'none';
+      }
+      return isValid;
+    }
+
+    // Save profile changes
+    profileForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!validateProfileForm()) return;
+
+      const updates = {};
+      updates['/users/' + currentUser.uid + '/profile/username'] = usernameInput.value.trim();
+
+      // Update password if provided
+      if (passwordInput.value) {
+        currentUser.updatePassword(passwordInput.value).then(() => {
+          alert('Password updated successfully');
+        }).catch(error => {
+          alert('Error updating password: ' + error.message);
+        });
+      }
+
+      // Save to database
+      database.ref().update(updates).then(() => {
+        alert('Profile updated successfully');
+        passwordInput.value = '';
+      }).catch(error => {
+        alert('Error updating profile: ' + error.message);
+      });
     });
 
-    // Privacy & Security
-    document.getElementById('enable-2fa-btn').addEventListener('click', () => {
-      alert('Two-factor authentication enabled!');
+    // Save notification preferences
+    notificationForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const notifications = {
+        email: emailNotifications.checked,
+        push: pushNotifications.checked
+      };
+      database.ref('users/' + currentUser.uid + '/settings/notifications').set(notifications)
+        .then(() => {
+          alert('Notification preferences saved');
+        }).catch(error => {
+          alert('Error saving notifications: ' + error.message);
+        });
     });
 
-    document.getElementById('set-recovery-btn').addEventListener('click', () => {
-      alert('Account recovery options set!');
+    // Save currency preference
+    currencyForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const currency = currencySelect.value;
+      database.ref('users/' + currentUser.uid + '/settings/currency').set(currency)
+        .then(() => {
+          alert('Currency preference saved');
+        }).catch(error => {
+          alert('Error saving currency: ' + error.message);
+        });
     });
 
-    // Table Icon Click Handlers
-    function editRecoveryOptions() {
-      alert('Editing account recovery options...');
-    }
+    // Validate and save recovery email
+    setRecoveryBtn.addEventListener('click', () => {
+      const email = recoveryEmailInput.value.trim();
+      if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        recoveryEmailError.style.display = 'block';
+        return;
+      }
+      recoveryEmailError.style.display = 'none';
+      database.ref('users/' + currentUser.uid + '/settings/recoveryEmail').set(email)
+        .then(() => {
+          alert('Recovery email saved');
+        }).catch(error => {
+          alert('Error saving recovery email: ' + error.message);
+        });
+    });
 
-    function editEmail() {
-      alert('Editing email...');
-    }
+    // Enable 2FA (Placeholder - requires additional setup)
+    enable2faBtn.addEventListener('click', () => {
+      alert('Two-factor authentication setup initiated. Please check your email for further instructions.');
+      // Note: Actual 2FA implementation requires additional Firebase setup (e.g., phone auth)
+    });
 
-    function editPassword() {
-      alert('Editing password...');
-    }
+    // Table action handlers
+    document.querySelectorAll('.settings-table td i').forEach(icon => {
+      icon.addEventListener('click', () => {
+        const action = icon.dataset.action;
+        if (action === 'recovery-email') {
+          recoveryEmailInput.focus();
+        } else if (action === 'email') {
+          alert('To change your email, please contact support.');
+        } else if (action === 'password') {
+          passwordInput.focus();
+        } else if (action === 'notifications') {
+          emailNotifications.focus();
+        }
+      });
+    });
 
-    function editNotifications() {
-      alert('Editing notification preferences...');
-    }
+    // Sidebar Toggle
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    // Highlight active menu item
+    const menuItems = document.querySelectorAll('.menu-items a');
+    menuItems.forEach(item => {
+      if (item.getAttribute('href') === 'settings.html') {
+        item.classList.add('active');
+      }
+      item.addEventListener('click', function() {
+        menuItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        alert('Error signing out: ' + error.message);
+      });
+    });
   </script>
 </body>
 </html>

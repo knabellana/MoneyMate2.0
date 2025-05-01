@@ -4,39 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Profile - Expense Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
-    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
-    
-    /* Sidebar Styles */
-    .sidebar {
+    body { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); 
+      color: #fff; 
+    }
+
+    /* Sidebar Styles (From Help & Support Page) */
+    .sidebar { 
       position: fixed; 
       left: 0; 
       top: 0; 
       width: 70px; 
-      height: 100%;
+      height: 100%; 
       background: #111; 
       display: flex; 
       flex-direction: column; 
       align-items: center; 
-      padding-top: 30px;
-      transition: width .3s;
-      overflow: hidden;
+      padding-top: 30px; 
+      transition: width 0.3s; 
+      z-index: 100;
     }
-    .sidebar.expanded { width: 200px; }
+    .sidebar.expanded { 
+      width: 200px; 
+    }
     .sidebar h2 { 
       display: none; 
       color: #fff; 
       margin-bottom: 30px; 
-      font-size: 1.5em;
-      width: 100%;
-      padding-left: 15px;
+      font-size: 1.5em; 
+      text-align: center; 
     }
-    .sidebar.expanded h2 { display: block; }
-    .sidebar a {
+    .sidebar.expanded h2 { 
+      display: block; 
+    }
+    .sidebar a { 
       padding: 15px; 
       color: #fff; 
       text-decoration: none; 
@@ -44,17 +56,24 @@
       align-items: center; 
       justify-content: center; 
       width: 100%; 
-      transition: background .3s;
+      transition: background 0.3s; 
     }
-    .sidebar.expanded a { justify-content: flex-start; }
-    .sidebar a:hover { background: #573b8a; }
-    .sidebar i { font-size: 1.2em; }
+    .sidebar a:hover { 
+      background: #573b8a; 
+    }
+    .sidebar a.active {
+      background: #6d44b8;
+    }
+    .sidebar i { 
+      font-size: 1.2em; 
+    }
     .sidebar span { 
       margin-left: 10px; 
-      display: none;
-      white-space: nowrap;
+      display: none; 
     }
-    .sidebar.expanded span { display: inline; }
+    .sidebar.expanded span { 
+      display: inline; 
+    }
     .sidebar .logout-btn { 
       margin-top: auto; 
       padding: 15px; 
@@ -65,8 +84,11 @@
       width: 100%; 
       text-align: center; 
       cursor: pointer; 
+      transition: background 0.3s; 
     }
-    .sidebar .logout-btn:hover { background: #ff3b3b; }
+    .sidebar .logout-btn:hover { 
+      background: #ff3b3b; 
+    }
     .toggle-btn { 
       position: absolute; 
       top: 10px; 
@@ -77,70 +99,242 @@
       padding: 8px 10px; 
       cursor: pointer; 
       border-radius: 0 5px 5px 0; 
-      z-index: 1;
+      transition: background 0.3s; 
     }
-    
-    /* Main Content Styles */
+    .toggle-btn:hover { 
+      background: #6d44b8; 
+    }
+
+    /* Main Content */
     .main-content { 
       margin-left: 70px; 
       padding: 40px; 
       flex: 1; 
       transition: margin-left 0.3s; 
     }
-    .sidebar.expanded ~ .main-content { margin-left: 200px; }
-    
-    /* Centering Profile Container */
-    .profile-container {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 30px;
-      border-radius: 20px;
-      max-width: 800px;
-      width: 100%;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-      text-align: center;
-      margin: auto;
+    .toggle-expanded ~ .main-content { 
+      margin-left: 200px; 
     }
     
-    .profile-container img {
-      width: 120px;
-      height: 120px;
+    /* Profile Container Styles */
+    .profile-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    .profile-header {
+      text-align: center;
+    }
+    
+    .profile-header img {
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
-      border: 3px solid #fff;
+      border: 4px solid #fff;
       object-fit: cover;
       margin-bottom: 15px;
+      transition: transform 0.3s ease;
+    }
+    .profile-header img:hover {
+      transform: scale(1.05);
     }
     .change-pic {
       background-color: #573b8a;
       color: #fff;
-      padding: 8px 16px;
+      padding: 10px 20px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.9em;
-      margin-bottom: 20px;
+      font-size: 1em;
+      font-weight: 500;
+      transition: background 0.3s, transform 0.1s;
     }
-    .change-pic:hover { background-color: #6d44b8; }
-    .hidden-file-input { display: none; }
-    h2 { margin-bottom: 10px; }
-    .currency-select { margin: 20px 0; }
-    .currency-select label { font-size: 0.95em; margin-right: 8px; }
-    .currency-select select { padding: 8px 12px; border-radius: 6px; border: none; font-size: 1em; }
-    .stats { display: flex; flex-direction: column; gap: 30px; margin: 30px 0; }
-    .chart-box { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; }
-    form input { width: 100%; padding: 12px; margin-bottom: 15px; border: none; border-radius: 8px; background: #eee; color: #000; font-size: 0.95em; }
-    form button { width: 100%; padding: 12px; background-color: #573b8a; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1em; cursor: pointer; transition: background 0.3s ease; }
-    form button:hover { background-color: #6d44b8; }
-    canvas { max-width: 100%; }
-    @media (max-width: 600px) { .profile-container { padding: 20px; } }
+    .change-pic:hover {
+      background-color: #6d44b8;
+      transform: translateY(-2px);
+    }
+    .change-pic:active {
+      transform: translateY(0);
+    }
+    .hidden-file-input {
+      display: none;
+    }
+    h2 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #e0e0e0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    /* Profile Sections */
+    .profile-section {
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 25px;
+      transition: transform 0.2s ease;
+    }
+    .profile-section:hover {
+      transform: translateY(-5px);
+    }
+    .profile-section h3 {
+      font-size: 1.6em;
+      margin-bottom: 20px;
+      font-weight: 500;
+      color: #e0e0e0;
+      border-bottom: 2px solid #6d44b8;
+      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* Profile Form */
+    .profile-form form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    form input {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      background: #2a2a4a;
+      color: #fff;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    form input:focus {
+      outline: none;
+      background: #353565;
+      border: 1px solid #6d44b8;
+    }
+    form input:disabled {
+      background: #1a1a3a;
+      color: #888;
+      cursor: not-allowed;
+    }
+    form button {
+      padding: 14px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      background: #6d44b8;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+    }
+    form button:hover {
+      background: #8259d1;
+      transform: translateY(-2px);
+    }
+    form button:active {
+      transform: translateY(0);
+    }
+    .error, .success {
+      font-size: 0.9em;
+      margin-top: 5px;
+      display: none;
+    }
+    .error {
+      color: #ff6b6b;
+    }
+    .success {
+      color: #4caf50;
+    }
+    
+    /* Account Stats */
+    .account-stats ul {
+      list-style: none;
+      padding: 0;
+    }
+    .account-stats li {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 1em;
+      color: #d0d0d0;
+    }
+    .account-stats li:last-child {
+      border-bottom: none;
+    }
+    
+    /* Recent Activity */
+    .recent-activity ul {
+      list-style: none;
+      padding: 0;
+    }
+    .recent-activity li {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.95em;
+      color: #d0d0d0;
+    }
+    .recent-activity li:last-child {
+      border-bottom: none;
+    }
+    .recent-activity .activity-date {
+      color: #888;
+      font-size: 0.85em;
+    }
+    
+    /* Loading State */
+    .loading {
+      color: #fff;
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.2em;
+    }
+    .hidden {
+      display: none;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 70px;
+        padding: 20px;
+      }
+      .toggle-expanded ~ .main-content { 
+        margin-left: 200px; 
+      }
+      .profile-container {
+        padding: 20px;
+      }
+      .profile-header img {
+        width: 120px;
+        height: 120px;
+      }
+      h2 {
+        font-size: 1.8em;
+      }
+      .profile-section h3 {
+        font-size: 1.4em;
+      }
+      .profile-section {
+        padding: 20px;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
+  <!-- Sidebar (From Help & Support Page) -->
   <div class="sidebar" id="sidebar">
     <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
     <h2>MENU</h2>
     <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
-    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="Profile.html" title="Go to Profile" class="active"><i class="fas fa-user"></i><span> Profile</span></a>
     <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
     <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
     <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
@@ -153,122 +347,308 @@
   <!-- Main Content -->
   <div class="main-content">
     <div class="profile-container">
-      <img src="https://i.pravatar.cc/150?img=32" alt="User Avatar" id="profile-pic">
-      <br>
-      <input type="file" id="file-upload" class="hidden-file-input" accept="image/*">
-      <button class="change-pic" onclick="fileUpload.click()">Change Photo</button>
-
-      <h2>Jane Doe</h2>
-
-      <div class="currency-select">
-        <label for="currency">Currency:</label>
-        <select id="currency">
-          <option value="PHP" selected>PHP (₱)</option>
-          <option value="USD">USD ($)</option>
-          <option value="EUR">EUR (€)</option>
-        </select>
-      </div>
-
-      <div class="stats">
-        <div class="chart-box">
-          <h3>Weekly Expenses</h3>
-          <canvas id="weeklyChart"></canvas>
+      <div id="loading" class="loading">Loading profile...</div>
+      
+      <div id="profile-content" class="hidden">
+        <div class="profile-header">
+          <img src="https://i.pravatar.cc/150?img=32" alt="User Avatar" id="profile-pic">
+          <input type="file" id="file-upload" class="hidden-file-input" accept="image/*">
+          <button class="change-pic" onclick="document.getElementById('file-upload').click()">Change Photo</button>
+          <h2 id="user-name">Loading...</h2>
         </div>
-        <div class="chart-box">
-          <h3>Monthly Expenses</h3>
-          <canvas id="monthlyChart"></canvas>
+
+        <div class="profile-section profile-form">
+          <h3><i class="fas fa-user-edit"></i> Profile Details</h3>
+          <form id="profile-form">
+            <div class="form-group">
+              <input type="text" id="full-name" placeholder="Full Name" required>
+              <span class="error" id="full-name-error">Full name is required.</span>
+            </div>
+            <div class="form-group">
+              <input type="email" id="email" placeholder="Email" required disabled>
+              <span class="error" id="email-error">Please enter a valid email.</span>
+            </div>
+            <div class="form-group">
+              <input type="password" id="new-password" placeholder="New Password (leave blank to keep current)">
+              <span class="error" id="password-error">Password must be at least 6 characters.</span>
+            </div>
+            <button type="submit">Save Changes</button>
+            <span class="success" id="profile-success">Profile updated successfully!</span>
+          </form>
+        </div>
+
+        <div class="profile-section account-stats">
+          <h3><i class="fas fa-info-circle"></i> Account Stats</h3>
+          <ul>
+            <li><span>Account Created</span> <span id="account-created">Loading...</span></li>
+            <li><span>Total Transactions</span> <span id="total-transactions">0</span></li>
+            <li><span>Last Login</span> <span id="last-login">Loading...</span></li>
+          </ul>
+        </div>
+
+        <div class="profile-section recent-activity">
+          <h3><i class="fas fa-history"></i> Recent Activity</h3>
+          <ul id="activity-list">
+            <li>Loading activities...</li>
+          </ul>
         </div>
       </div>
-
-      <form>
-        <input type="text" placeholder="Full Name" value="Jane Doe" required>
-        <input type="email" placeholder="Email" value="jane.doe@example.com" required>
-        <input type="password" placeholder="New Password">
-        <button type="submit">Save Changes</button>
-      </form>
     </div>
   </div>
 
   <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm81SKSxFhG6U43vMTtgVPd3W4N_rEnEE",
+      authDomain: "moneymate-1dbbd.firebaseapp.com",
+      databaseURL: "https://moneymate-1dbbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "moneymate-1dbbd",
+      storageBucket: "moneymate-1dbbd.firebasestorage.app",
+      messagingSenderId: "273661692942",
+      appId: "1:273661692942:web:454a2c386145e628bfc05f",
+      measurementId: "G-GTK1RVZSCP"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
+
+    // DOM Elements
     const fileUpload = document.getElementById('file-upload');
     const profilePic = document.getElementById('profile-pic');
-    const currencySelect = document.getElementById('currency');
+    const userNameElement = document.getElementById('user-name');
+    const fullNameInput = document.getElementById('full-name');
+    const emailInput = document.getElementById('email');
+    const newPasswordInput = document.getElementById('new-password');
+    const profileForm = document.getElementById('profile-form');
+    const loadingElement = document.getElementById('loading');
+    const profileContent = document.getElementById('profile-content');
+    const fullNameError = document.getElementById('full-name-error');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    const profileSuccess = document.getElementById('profile-success');
+    const accountCreated = document.getElementById('account-created');
+    const totalTransactions = document.getElementById('total-transactions');
+    const lastLogin = document.getElementById('last-login');
+    const activityList = document.getElementById('activity-list');
 
-    // Profile picture preview
-    fileUpload.addEventListener('change', () => {
-      const file = fileUpload.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = e => profilePic.src = e.target.result;
-        reader.readAsDataURL(file);
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loadUserProfile(user.uid);
+      } else {
+        alert('Please sign in to view your profile');
+        window.location.href = 'login.html';
       }
     });
 
-    // Chart.js setup
-    const rates = { PHP: 1, USD: 0.018, EUR: 0.016 };
-    let curr = currencySelect.value;
-
-    function makeChart(ctx, data, color) {
-      return new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Food', 'Transport', 'Bills', 'Entertainment', 'Other'],
-          datasets: [{ label: 'Amount', data, backgroundColor: color, borderRadius: 5 }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => {
-                  const val = ctx.parsed.y;
-                  const symbol = curr === 'PHP' ? '₱' : curr === 'USD' ? '$' : '€';
-                  return symbol + val;
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: val => {
-                  const symbol = curr === 'PHP' ? '₱' : curr === 'USD' ? '$' : '€';
-                  return symbol + val;
-                }
-              }
-            }
+    // Load user profile from database
+    function loadUserProfile(userId) {
+      database.ref('users/' + userId).once('value').then(snapshot => {
+        const userData = snapshot.val();
+        const user = auth.currentUser;
+        
+        if (userData) {
+          // Display user data
+          userNameElement.textContent = userData.fullName || 'User';
+          fullNameInput.value = userData.fullName || '';
+          emailInput.value = userData.email || user.email || '';
+          
+          // Load profile picture if available
+          if (userData.profilePicture) {
+            profilePic.src = userData.profilePicture;
           }
+          
+          // Load account stats
+          const creationDate = new Date(user.metadata.creationTime).toLocaleDateString();
+          accountCreated.textContent = creationDate;
+          
+          // Mock total transactions (since we don't have a transactions table yet)
+          totalTransactions.textContent = userData.totalTransactions || 0;
+          
+          // Last login (mock for now, Firebase doesn't provide this directly in this SDK version)
+          lastLogin.textContent = userData.lastLogin || new Date().toLocaleString();
+          
+          // Load recent activities
+          loadRecentActivities(userId);
+          
+          // Hide loading and show content
+          loadingElement.classList.add('hidden');
+          profileContent.classList.remove('hidden');
+        } else {
+          // No user data found - create default
+          const defaultData = {
+            fullName: user.displayName || 'User',
+            email: user.email || '',
+            totalTransactions: 0,
+            lastLogin: new Date().toLocaleString()
+          };
+          
+          database.ref('users/' + userId).set(defaultData).then(() => {
+            loadUserProfile(userId); // Reload with new data
+          });
         }
+      }).catch(error => {
+        console.error('Error loading profile:', error);
+        loadingElement.textContent = 'Error loading profile. Please try again.';
       });
     }
 
-    const weeklyData = [700, 400, 600, 350, 400];
-    const monthlyData = [3000, 1600, 2400, 1350, 1320];
-    const weeklyChart = makeChart(document.getElementById('weeklyChart').getContext('2d'), weeklyData, '#6d44b8');
-    const monthlyChart = makeChart(document.getElementById('monthlyChart').getContext('2d'), monthlyData, '#573b8a');
+    // Load recent activities from Firebase
+    function loadRecentActivities(userId) {
+      database.ref('users/' + userId + '/activities').orderByChild('timestamp').limitToLast(5).once('value').then(snapshot => {
+        const activities = snapshot.val();
+        activityList.innerHTML = '';
+        
+        if (activities) {
+          const activityArray = Object.entries(activities).sort((a, b) => b[1].timestamp - a[1].timestamp);
+          activityArray.forEach(([key, activity]) => {
+            const date = new Date(activity.timestamp).toLocaleString();
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span>${activity.description}</span>
+              <span class="activity-date">${date}</span>
+            `;
+            activityList.appendChild(li);
+          });
+        } else {
+          activityList.innerHTML = '<li>No recent activities found.</li>';
+        }
+      }).catch(error => {
+        console.error('Error loading activities:', error);
+        activityList.innerHTML = '<li>Error loading activities.</li>';
+      });
+    }
 
-    // Update charts on currency change
-    currencySelect.addEventListener('change', () => {
-      curr = currencySelect.value;
-      // convert data and update
-      weeklyChart.data.datasets[0].data = weeklyData.map(v => +(v * rates[curr]).toFixed(2));
-      monthlyChart.data.datasets[0].data = monthlyData.map(v => +(v * rates[curr]).toFixed(2));
-      weeklyChart.update();
-      monthlyChart.update();
+    // Handle profile picture upload
+    fileUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const userId = auth.currentUser.uid;
+        const storageRef = storage.ref('profile_pictures/' + userId + '.jpg');
+        
+        // Show loading state
+        loadingElement.classList.remove('hidden');
+        loadingElement.textContent = 'Uploading profile picture...';
+        profileContent.classList.add('hidden');
+        
+        // Upload file
+        storageRef.put(file).then(snapshot => {
+          return snapshot.ref.getDownloadURL();
+        }).then(downloadURL => {
+          // Update profile picture in database
+          return database.ref('users/' + userId).update({
+            profilePicture: downloadURL
+          });
+        }).then(() => {
+          // Update displayed image
+          profilePic.src = URL.createObjectURL(file);
+          loadingElement.classList.add('hidden');
+          profileContent.classList.remove('hidden');
+          alert('Profile picture updated successfully!');
+        }).catch(error => {
+          console.error('Error uploading profile picture:', error);
+          loadingElement.textContent = 'Error uploading profile picture';
+        });
+      }
     });
 
-    // Toggle Sidebar
+    // Handle profile form submission
+    profileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      let isValid = true;
+      fullNameError.style.display = 'none';
+      emailError.style.display = 'none';
+      passwordError.style.display = 'none';
+      profileSuccess.style.display = 'none';
+      
+      // Validate form
+      if (!fullNameInput.value.trim()) {
+        fullNameError.style.display = 'block';
+        isValid = false;
+      }
+      if (!emailInput.value || !/^\S+@\S+\.\S+$/.test(emailInput.value)) {
+        emailError.style.display = 'block';
+        isValid = false;
+      }
+      if (newPasswordInput.value && newPasswordInput.value.length < 6) {
+        passwordError.style.display = 'block';
+        isValid = false;
+      }
+      
+      if (!isValid) return;
+      
+      const userId = auth.currentUser.uid;
+      const newFullName = fullNameInput.value.trim();
+      const newEmail = emailInput.value;
+      const newPassword = newPasswordInput.value;
+      
+      // Show loading state
+      loadingElement.classList.remove('hidden');
+      loadingElement.textContent = 'Saving changes...';
+      profileContent.classList.add('hidden');
+      
+      // Update profile data in database
+      const updates = {
+        fullName: newFullName,
+        email: newEmail,
+        lastLogin: new Date().toLocaleString()
+      };
+      
+      const promises = [
+        database.ref('users/' + userId).update(updates)
+      ];
+      
+      // Update email if changed
+      const user = auth.currentUser;
+      if (user.email !== newEmail) {
+        promises.push(user.updateEmail(newEmail));
+      }
+      
+      // Update password if provided
+      if (newPassword) {
+        promises.push(user.updatePassword(newPassword));
+      }
+      
+      // Execute all updates
+      Promise.all(promises).then(() => {
+        userNameElement.textContent = newFullName;
+        loadingElement.classList.add('hidden');
+        profileContent.classList.remove('hidden');
+        profileSuccess.style.display = 'block';
+        newPasswordInput.value = ''; // Clear password field
+      }).catch(error => {
+        console.error('Error updating profile:', error);
+        loadingElement.textContent = 'Error updating profile: ' + error.message;
+      });
+    });
+
+    // Sidebar Toggle (Updated for Help & Support Sidebar)
     function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('expanded');
+      document.getElementById('sidebar').classList.toggle('expanded');
     }
-    
-    // Logout function
+
+    // Highlight active menu item
+    const menuItems = document.querySelectorAll('.sidebar a');
+    menuItems.forEach(item => {
+      if (item.getAttribute('href') === 'Profile.html') {
+        item.classList.add('active');
+      }
+      item.addEventListener('click', function() {
+        menuItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Logout functionality
     function logout() {
-      alert('Logging out...');
-      window.location.href = 'login.html';
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        alert('Error signing out: ' + error.message);
+      });
     }
   </script>
 </body>
