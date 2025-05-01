@@ -10,7 +10,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
     body { 
@@ -334,8 +333,8 @@
     <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
     <h2>MENU</h2>
     <a href="menu.html"><i class="fas fa-home"></i><span> Home</span></a>
-    <a href="Profile.html" title="Go to Profile" class="active"><i class="fas fa-user"></i><span> Profile</span></a>
-    <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="profile.html" title="Go to Profile" class="active"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="Dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
     <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
     <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
     <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
@@ -412,7 +411,6 @@
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
-    const storage = firebase.storage();
 
     // DOM Elements
     const fileUpload = document.getElementById('file-upload');
@@ -432,6 +430,9 @@
     const totalTransactions = document.getElementById('total-transactions');
     const lastLogin = document.getElementById('last-login');
     const activityList = document.getElementById('activity-list');
+
+    // ImgBB API Key
+    const IMGBB_API_KEY = "9d4a2c7b641f9881ea3a4543a903e817";
 
     // Check authentication state
     auth.onAuthStateChanged(user => {
@@ -521,35 +522,49 @@
       });
     }
 
-    // Handle profile picture upload
+    // Handle profile picture upload to ImgBB
     fileUpload.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
         const userId = auth.currentUser.uid;
-        const storageRef = storage.ref('profile_pictures/' + userId + '.jpg');
-        
+
         // Show loading state
         loadingElement.classList.remove('hidden');
         loadingElement.textContent = 'Uploading profile picture...';
         profileContent.classList.add('hidden');
-        
-        // Upload file
-        storageRef.put(file).then(snapshot => {
-          return snapshot.ref.getDownloadURL();
-        }).then(downloadURL => {
-          // Update profile picture in database
-          return database.ref('users/' + userId).update({
-            profilePicture: downloadURL
-          });
-        }).then(() => {
-          // Update displayed image
-          profilePic.src = URL.createObjectURL(file);
-          loadingElement.classList.add('hidden');
-          profileContent.classList.remove('hidden');
-          alert('Profile picture updated successfully!');
-        }).catch(error => {
+
+        // Prepare FormData for ImgBB API
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('key', IMGBB_API_KEY);
+
+        // Upload to ImgBB
+        fetch('https://api.imgbb.com/1/upload', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const imageUrl = data.data.url;
+
+            // Update profile picture in Firebase Realtime Database
+            return database.ref('users/' + userId).update({
+              profilePicture: imageUrl
+            }).then(() => {
+              // Update displayed image
+              profilePic.src = imageUrl;
+              loadingElement.classList.add('hidden');
+              profileContent.classList.remove('hidden');
+              alert('Profile picture updated successfully!');
+            });
+          } else {
+            throw new Error('ImgBB upload failed: ' + (data.error?.message || 'Unknown error'));
+          }
+        })
+        .catch(error => {
           console.error('Error uploading profile picture:', error);
-          loadingElement.textContent = 'Error uploading profile picture';
+          loadingElement.textContent = 'Error uploading profile picture: ' + error.message;
         });
       }
     });
@@ -633,7 +648,7 @@
     // Highlight active menu item
     const menuItems = document.querySelectorAll('.sidebar a');
     menuItems.forEach(item => {
-      if (item.getAttribute('href') === 'Profile.html') {
+      if (item.getAttribute('href') === 'profile.html') {
         item.classList.add('active');
       }
       item.addEventListener('click', function() {

@@ -311,8 +311,8 @@
     <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
     <h2>MENU</h2>
     <a href="menu.html"><i class="fas fa-home"></i><span> Home</span></a>
-    <a href="Profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
-    <a href="dashboard.html" title="View Dashboard" class="active"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="Dashboard.html" title="View Dashboard" class="active"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
     <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
     <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
     <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
@@ -593,7 +593,7 @@
     // Highlight active menu item
     const menuItems = document.querySelectorAll('.sidebar a');
     menuItems.forEach(item => {
-      if (item.getAttribute('href') === 'dashboard.html') {
+      if (item.getAttribute('href') === 'Dashboard.html') {
         item.classList.add('active');
       }
       item.addEventListener('click', function() {

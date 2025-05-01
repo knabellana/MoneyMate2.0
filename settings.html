@@ -22,291 +22,325 @@
     /* Sidebar Styles */
     .sidebar { 
       position: fixed; 
-      left: -250px;
+      left: 0; 
       top: 0; 
-      width: 250px; 
+      width: 70px; 
       height: 100%; 
       background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 50px; 
+      transition: width 0.3s ease; 
       z-index: 100;
-      transition: left 0.3s ease;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
     }
-    
-    .sidebar-header {
-      padding: 20px;
-      border-bottom: 1px solid #333;
-      text-align: center;
+    .sidebar.expanded { 
+      width: 200px; 
+      align-items: flex-start; 
+      padding-left: 20px; 
     }
-    
-    .sidebar-header h2 {
-      color: #fff;
-      font-size: 1.5em;
-      margin-bottom: 5px;
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em; 
+      text-align: center; 
+      width: 100%; 
     }
-    
-    .menu-items {
-      flex: 1;
-      padding: 15px 0;
-      overflow-y: auto;
+    .sidebar.expanded h2 { 
+      display: block; 
     }
-    
-    .menu-items a {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      color: #fff;
-      text-decoration: none;
-      transition: background 0.3s;
+    .sidebar a { 
+      padding: 15px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      width: 100%; 
+      transition: background 0.3s; 
     }
-    
-    .menu-items a i {
-      width: 30px;
-      text-align: center;
-      margin-right: 10px;
+    .sidebar a:hover { 
+      background: #573b8a; 
     }
-    
-    .menu-items a:hover {
-      background: #573b8a;
-    }
-    
-    .menu-items a.active {
+    .sidebar a.active {
       background: #6d44b8;
     }
-    
-    /* Toggle Button */
-    .toggle-btn {
-      position: fixed;
-      left: 20px;
-      top: 20px;
-      background: #573b8a;
-      color: #fff;
-      border: none;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border-radius: 5px;
-      z-index: 101;
-      transition: left 0.3s ease, background 0.3s;
+    .sidebar i { 
+      font-size: 1.2em; 
+      width: 30px; 
+      text-align: center; 
     }
-    
-    .toggle-btn:hover {
-      background: #6d44b8;
+    .sidebar span { 
+      display: none; 
+      margin-left: 10px; 
     }
-    
-    /* When sidebar is open */
-    .sidebar.open {
-      left: 0;
+    .sidebar.expanded span { 
+      display: inline; 
     }
-    
-    .sidebar.open ~ .main-content {
-      margin-left: 250px;
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: background 0.3s; 
     }
-    
-    .sidebar.open ~ .toggle-btn {
-      left: 270px;
+    .sidebar .logout-btn:hover { 
+      background: #ff3b3b; 
     }
-    
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -30px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: 2px solid #6d44b8; 
+      padding: 8px 12px; 
+      cursor: pointer; 
+      border-radius: 0 8px 8px 0; 
+      transition: background 0.3s, transform 0.2s; 
+      z-index: 101; 
+      font-size: 1.2em; 
+      line-height: 1; 
+    }
+    .toggle-btn:hover { 
+      background: #6d44b8; 
+      transform: translateX(2px); 
+    }
+
     /* Main Content Styles */
     .main-content { 
-      flex: 1;
-      padding: 40px;
-      transition: margin-left 0.3s ease;
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left 0.3s; 
     }
-    
+    .toggle-expanded ~ .main-content { 
+      margin-left: 200px; 
+    }
+
+    /* Content Styles */
     h1 { 
       text-align: center; 
       margin-bottom: 40px; 
       font-size: 2.5em; 
       font-weight: 700; 
+      color: #e0e0e0; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+    }
+    .content-wrapper { 
+      display: grid; 
+      grid-template-columns: 2fr 1fr; 
+      gap: 40px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+    .left-panel { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 30px; 
+    }
+    .right-panel { 
+      position: sticky; 
+      top: 40px; 
+      align-self: start; 
+    }
+
+    /* Section Styles */
+    .section { 
+      background: rgba(255,255,255,0.1); 
+      padding: 30px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      transition: transform 0.2s ease; 
+    }
+    .section:hover { 
+      transform: translateY(-5px); 
+    }
+    .section h3 { 
+      font-size: 1.6em; 
+      margin-bottom: 25px; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      border-bottom: 2px solid #6d44b8; 
+      padding-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+
+    /* Form Styles */
+    .form-group { 
+      margin-bottom: 20px; 
+    }
+    label { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      font-size: 1.1em; 
+      margin-bottom: 8px; 
+      font-weight: 500; 
+      color: #d0d0d0; 
+    }
+    input, textarea { 
+      width: 100%; 
+      padding: 12px 15px; 
+      font-size: 1em; 
+      border-radius: 8px; 
+      border: none; 
+      background: #2a2a4a; 
       color: #fff; 
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: border-color 0.3s, background 0.3s; 
     }
-    
-    .content-wrapper {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 30px;
-      max-width: 1200px;
-      margin: 0 auto;
+    input:focus, textarea:focus { 
+      outline: none; 
+      background: #353565; 
+      border: 1px solid #6d44b8; 
     }
-    
-    .left-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
+    input:disabled { 
+      background: #1a1a3a; 
+      color: #888; 
+      cursor: not-allowed; 
     }
-    
-    .right-panel {
-      position: sticky;
-      top: 40px;
-      align-self: start;
+    .error { 
+      color: #ff6b6b; 
+      font-size: 0.9em; 
+      margin-top: 5px; 
+      display: none; 
     }
-    
-    .section {
-      background: rgba(255,255,255,0.1);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease;
+    button { 
+      width: 100%; 
+      padding: 14px; 
+      font-size: 1.1em; 
+      border-radius: 8px; 
+      border: none; 
+      background: #6d44b8; 
+      color: #fff; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: background 0.3s, transform 0.1s; 
+      margin-top: 10px; 
     }
-    
-    .section:hover {
-      transform: translateY(-5px);
+    button:hover { 
+      background: #8259d1; 
+      transform: translateY(-2px); 
     }
-    
-    .section h3 {
-      font-size: 1.6em;
-      margin-bottom: 25px;
-      font-weight: 500;
-      color: #e0e0e0;
-      border-bottom: 2px solid #6d44b8;
-      padding-bottom: 8px;
+    button:active { 
+      transform: translateY(0); 
     }
-    
-    .form-group {
-      margin-bottom: 20px;
+    .checkbox-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 15px; 
+      margin-bottom: 20px; 
     }
-    
-    label {
-      display: block;
-      font-size: 1.1em;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #d0d0d0;
+    .checkbox-group label { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-size: 1em; 
+      color: #d0d0d0; 
     }
-    
-    input, select, textarea {
-      width: 100%;
-      padding: 12px 15px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: none;
-      background: #2a2a4a;
-      color: #fff;
-      transition: border-color 0.3s, background 0.3s;
+    input[type="checkbox"] { 
+      width: 20px; 
+      height: 20px; 
+      accent-color: #6d44b8; 
     }
-    
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      background: #353565;
-      border: 1px solid #6d44b8;
+
+    /* Settings Table Styles */
+    .settings-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: rgba(255,255,255,0.05); 
+      border-radius: 12px; 
+      overflow: hidden; 
     }
-    
-    input:disabled {
-      background: #1a1a3a;
-      color: #888;
-      cursor: not-allowed;
+    .settings-table th, .settings-table td { 
+      padding: 15px 20px; 
+      text-align: left; 
+      color: #d0d0d0; 
+      font-size: 0.95em; 
     }
-    
-    .error {
-      color: #ff6b6b;
-      font-size: 0.9em;
-      margin-top: 5px;
-      display: none;
+    .settings-table thead { 
+      background: #573b8a; 
     }
-    
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 1.1em;
-      border-radius: 8px;
-      border: none;
-      background: #6d44b8;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.1s;
+    .settings-table tbody tr { 
+      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      transition: background 0.3s; 
     }
-    
-    button:hover {
-      background: #8259d1;
-      transform: translateY(-2px);
+    .settings-table tbody tr:last-child { 
+      border-bottom: none; 
     }
-    
-    button:active {
-      transform: translateY(0);
+    .settings-table tbody tr:hover { 
+      background: rgba(255,255,255,0.1); 
     }
-    
-    .checkbox-group, .select-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
+    .settings-table td i { 
+      font-size: 1.2em; 
+      cursor: pointer; 
+      color: #ff6b6b; 
+      transition: transform 0.2s, color 0.3s; 
+      position: relative; 
     }
-    
-    .checkbox-group label, .select-group label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1em;
-      color: #d0d0d0;
+    .settings-table td i:hover { 
+      transform: scale(1.2); 
+      color: #ff8787; 
     }
-    
-    .settings-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(255,255,255,0.1);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      border-radius: 12px;
-      overflow: hidden;
+    .settings-table td i::after { 
+      content: attr(data-tooltip); 
+      position: absolute; 
+      bottom: 120%; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      background: rgba(0,0,0,0.8); 
+      color: #fff; 
+      padding: 5px 10px; 
+      border-radius: 5px; 
+      font-size: 0.8em; 
+      white-space: nowrap; 
+      opacity: 0; 
+      visibility: hidden; 
+      transition: opacity 0.2s, visibility 0.2s; 
+      z-index: 10; 
     }
-    
-    .settings-table th, .settings-table td {
-      padding: 15px 20px;
-      text-align: left;
-      color: #fff;
+    .settings-table td i:hover::after { 
+      opacity: 1; 
+      visibility: visible; 
     }
-    
-    .settings-table thead {
-      background: #6d44b8;
-    }
-    
-    .settings-table tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .settings-table tbody tr:last-child {
-      border-bottom: none;
-    }
-    
-    .settings-table td i {
-      font-size: 1.2em;
-      cursor: pointer;
-      color: #ff6b6b;
-      transition: transform 0.2s, color 0.3s;
-    }
-    
-    .settings-table td i:hover {
-      transform: scale(1.2);
-      color: #ff8787;
-    }
-    
-    /* Responsive adjustments */
+
+    /* Responsive Adjustments */
     @media (max-width: 768px) {
-      .content-wrapper {
-        grid-template-columns: 1fr;
-      }
-      .right-panel {
-        position: static;
-      }
       .main-content {
+        margin-left: 70px;
         padding: 20px;
       }
-      h1 {
-        font-size: 2em;
-        margin-bottom: 30px;
+      .toggle-expanded ~ .main-content { 
+        margin-left: 200px; 
       }
-      .section {
-        padding: 20px;
+      h1 { 
+        font-size: 2em; 
+        margin-bottom: 30px; 
       }
-      .section h3 {
-        font-size: 1.4em;
-        margin-bottom: 20px;
+      .content-wrapper { 
+        grid-template-columns: 1fr; 
+        gap: 30px; 
+      }
+      .right-panel { 
+        position: static; 
+      }
+      .section { 
+        padding: 20px; 
+      }
+      .section h3 { 
+        font-size: 1.4em; 
+        margin-bottom: 20px; 
+      }
+      .settings-table th, .settings-table td { 
+        padding: 12px 15px; 
+        font-size: 0.9em; 
       }
     }
   </style>
@@ -314,32 +348,18 @@
 <body>
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h2>MENU</h2>
-    </div>
-    
-    <div class="menu-items">
-      <a href="menu.html"><i class="fas fa-home"></i> Home</a>
-      <a href="Profile.html"><i class="fas fa-user"></i> Profile</a>
-      <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-      <a href="transactions.html"><i class="fas fa-list"></i> Transactions</a>
-      <a href="viewreports.html"><i class="fas fa-chart-pie"></i> Reports</a>
-      <a href="budget.html"><i class="fas fa-wallet"></i> Budget</a>
-      <a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a>
-      <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
-    </div>
-    
-    <div class="sidebar-footer">
-      <button class="logout-btn" id="logout-btn" aria-label="Logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
-    </div>
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>MENU</h2>
+    <a href="menu.html"><i class="fas fa-home"></i><span> Home</span></a>
+    <a href="profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="Dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
+    <a href="budget.html" title="Manage Budget"><i class="fas fa-wallet"></i><span> Budget</span></a>
+    <a href="settings.html" title="App Settings" class="active"><i class="fas fa-cog"></i><span> Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
   </div>
-
-  <!-- Toggle Button -->
-  <button class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">
-    <i class="fas fa-bars"></i>
-  </button>
 
   <!-- Main Content -->
   <div class="main-content">
@@ -347,20 +367,20 @@
     <div class="content-wrapper">
       <div class="left-panel">
         <div class="section" id="profile-settings">
-          <h3>Profile Settings</h3>
+          <h3><i class="fas fa-user-edit"></i> Profile Settings</h3>
           <form id="profile-form">
             <div class="form-group">
-              <label for="username">Username</label>
+              <label for="username"><i class="fas fa-user"></i> Username</label>
               <input type="text" id="username" placeholder="Enter username" required aria-required="true">
               <span class="error" id="username-error">Username is required.</span>
             </div>
             <div class="form-group">
-              <label for="email">Email</label>
+              <label for="email"><i class="fas fa-envelope"></i> Email</label>
               <input type="email" id="email" placeholder="Enter email" required aria-required="true" disabled>
               <span class="error" id="email-error">Please enter a valid email.</span>
             </div>
             <div class="form-group">
-              <label for="password">Change Password</label>
+              <label for="password"><i class="fas fa-lock"></i> Change Password</label>
               <input type="password" id="password" placeholder="New password (optional)" aria-describedby="password-error">
               <span class="error" id="password-error">Password must be at least 6 characters.</span>
             </div>
@@ -369,7 +389,7 @@
         </div>
 
         <div class="section" id="notification-settings">
-          <h3>Notification Preferences</h3>
+          <h3><i class="fas fa-bell"></i> Notification Preferences</h3>
           <form id="notification-form">
             <div class="checkbox-group">
               <label>
@@ -385,27 +405,10 @@
           </form>
         </div>
 
-        <div class="section" id="currency-settings">
-          <h3>Currency Preferences</h3>
-          <form id="currency-form">
-            <div class="form-group">
-              <label for="currency">Preferred Currency</label>
-              <select id="currency" aria-label="Select preferred currency">
-                <option value="PHP">Philippine Peso (PHP)</option>
-                <option value="USD">US Dollar (USD)</option>
-                <option value="EUR">Euro (EUR)</option>
-                <option value="JPY">Japanese Yen (JPY)</option>
-                <option value="GBP">British Pound (GBP)</option>
-              </select>
-            </div>
-            <button type="submit" id="save-currency-btn">Save Currency</button>
-          </form>
-        </div>
-
         <div class="section" id="privacy-settings">
-          <h3>Privacy & Security</h3>
+          <h3><i class="fas fa-shield-alt"></i> Privacy & Security</h3>
           <div class="form-group">
-            <label for="recovery-email">Recovery Email</label>
+            <label for="recovery-email"><i class="fas fa-life-ring"></i> Recovery Email</label>
             <input type="email" id="recovery-email" placeholder="Enter recovery email" aria-describedby="recovery-email-error">
             <span class="error" id="recovery-email-error">Please enter a valid email.</span>
           </div>
@@ -416,7 +419,7 @@
 
       <div class="right-panel">
         <div class="section">
-          <h3>Quick Actions</h3>
+          <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
           <table class="settings-table">
             <thead>
               <tr>
@@ -427,19 +430,19 @@
             <tbody>
               <tr>
                 <td>Account Recovery</td>
-                <td><i class="fas fa-edit" title="Edit Recovery Options" data-action="recovery-email" aria-label="Edit recovery email"></i></td>
+                <td><i class="fas fa-edit" data-tooltip="Edit Recovery Options" data-action="recovery-email" aria-label="Edit recovery email"></i></td>
               </tr>
               <tr>
                 <td>Change Email</td>
-                <td><i class="fas fa-edit" title="Edit Email" data-action="email" aria-label="Edit email"></i></td>
+                <td><i class="fas fa-edit" data-tooltip="Edit Email" data-action="email" aria-label="Edit email"></i></td>
               </tr>
               <tr>
                 <td>Change Password</td>
-                <td><i class="fas fa-edit" title="Edit Password" data-action="password" aria-label="Edit password"></i></td>
+                <td><i class="fas fa-edit" data-tooltip="Edit Password" data-action="password" aria-label="Edit password"></i></td>
               </tr>
               <tr>
                 <td>Notifications</td>
-                <td><i class="fas fa-bell" title="Edit Notifications" data-action="notifications" aria-label="Edit notifications"></i></td>
+                <td><i class="fas fa-bell" data-tooltip="Edit Notifications" data-action="notifications" aria-label="Edit notifications"></i></td>
               </tr>
             </tbody>
           </table>
@@ -466,9 +469,6 @@
     const database = firebase.database();
 
     // DOM Elements
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggle-btn');
-    const logoutBtn = document.getElementById('logout-btn');
     const profileForm = document.getElementById('profile-form');
     const usernameInput = document.getElementById('username');
     const emailInput = document.getElementById('email');
@@ -479,8 +479,6 @@
     const notificationForm = document.getElementById('notification-form');
     const emailNotifications = document.getElementById('email-notifications');
     const pushNotifications = document.getElementById('push-notifications');
-    const currencyForm = document.getElementById('currency-form');
-    const currencySelect = document.getElementById('currency');
     const recoveryEmailInput = document.getElementById('recovery-email');
     const recoveryEmailError = document.getElementById('recovery-email-error');
     const setRecoveryBtn = document.getElementById('set-recovery-btn');
@@ -516,14 +514,6 @@
           const data = snapshot.val();
           emailNotifications.checked = data.email || false;
           pushNotifications.checked = data.push || false;
-        }
-      });
-
-      // Load currency preference
-      database.ref('users/' + currentUser.uid + '/settings/currency').once('value').then(snapshot => {
-        if (snapshot.exists()) {
-          const currency = snapshot.val();
-          currencySelect.value = currency;
         }
       });
 
@@ -594,18 +584,6 @@
         });
     });
 
-    // Save currency preference
-    currencyForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const currency = currencySelect.value;
-      database.ref('users/' + currentUser.uid + '/settings/currency').set(currency)
-        .then(() => {
-          alert('Currency preference saved');
-        }).catch(error => {
-          alert('Error saving currency: ' + error.message);
-        });
-    });
-
     // Validate and save recovery email
     setRecoveryBtn.addEventListener('click', () => {
       const email = recoveryEmailInput.value.trim();
@@ -645,12 +623,12 @@
     });
 
     // Sidebar Toggle
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-    });
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
 
     // Highlight active menu item
-    const menuItems = document.querySelectorAll('.menu-items a');
+    const menuItems = document.querySelectorAll('.sidebar a');
     menuItems.forEach(item => {
       if (item.getAttribute('href') === 'settings.html') {
         item.classList.add('active');
@@ -662,13 +640,13 @@
     });
 
     // Logout functionality
-    logoutBtn.addEventListener('click', () => {
+    function logout() {
       auth.signOut().then(() => {
         window.location.href = 'index.html';
       }).catch(error => {
         alert('Error signing out: ' + error.message);
       });
-    });
+    }
   </script>
 </body>
 </html>

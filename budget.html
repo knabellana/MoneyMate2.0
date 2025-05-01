@@ -12,324 +12,378 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
-    body { display: flex; min-height: 100vh; background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: #fff; }
-    
-    /* Sidebar Styles */
-    .sidebar {
-      position: fixed;
-      left: -250px;
-      top: 0;
-      width: 250px;
-      height: 100%;
-      background: #111;
+    body { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); 
+      color: #fff; 
+    }
+
+    /* Sidebar Styles (Updated to match dashboard.html) */
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 70px; 
+      height: 100%; 
+      background: #111; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 50px; 
+      transition: width 0.3s ease; 
       z-index: 100;
-      transition: left 0.3s ease;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
     }
-    
-    .sidebar-header {
-      padding: 20px;
-      border-bottom: 1px solid #333;
-      text-align: center;
+    .sidebar.expanded { 
+      width: 200px; 
+      align-items: flex-start; 
+      padding-left: 20px; 
     }
-    
-    .sidebar-header h2 {
-      color: #fff;
-      font-size: 1.5em;
-      margin-bottom: 5px;
+    .sidebar h2 { 
+      display: none; 
+      color: #fff; 
+      margin-bottom: 30px; 
+      font-size: 1.5em; 
+      text-align: center; 
+      width: 100%; 
     }
-    
-    .menu-items {
-      flex: 1;
-      padding: 15px 0;
-      overflow-y: auto;
+    .sidebar.expanded h2 { 
+      display: block; 
     }
-    
-    .menu-items a {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      color: #fff;
-      text-decoration: none;
-      transition: background 0.3s;
+    .sidebar a { 
+      padding: 15px; 
+      color: #fff; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      width: 100%; 
+      transition: background 0.3s; 
     }
-    
-    .menu-items a i {
-      width: 30px;
-      text-align: center;
-      margin-right: 10px;
+    .sidebar a:hover { 
+      background: #573b8a; 
     }
-    
-    .menu-items a:hover {
-      background: #573b8a;
-    }
-    
-    .menu-items a.active {
+    .sidebar a.active {
       background: #6d44b8;
     }
-    
-    /* Toggle Button */
-    .toggle-btn {
-      position: fixed;
-      left: 20px;
-      top: 20px;
-      background: #573b8a;
-      color: #fff;
-      border: none;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border-radius: 5px;
-      z-index: 101;
-      transition: left 0.3s ease;
+    .sidebar i { 
+      font-size: 1.2em; 
+      width: 30px; 
+      text-align: center; 
     }
-    
-    .toggle-btn:hover {
-      background: #6d44b8;
+    .sidebar span { 
+      display: none; 
+      margin-left: 10px; 
     }
-    
-    /* When sidebar is open */
-    .sidebar.open {
-      left: 0;
+    .sidebar.expanded span { 
+      display: inline; 
     }
-    
-    .sidebar.open ~ .main-content {
-      margin-left: 250px;
+    .sidebar .logout-btn { 
+      margin-top: auto; 
+      padding: 15px; 
+      background: #ff6b6b; 
+      color: white; 
+      font-size: 1.1em; 
+      border: none; 
+      width: 100%; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: background 0.3s; 
     }
-    
-    .sidebar.open ~ .toggle-btn {
-      left: 270px;
+    .sidebar .logout-btn:hover { 
+      background: #ff3b3b; 
     }
-    
+    .toggle-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: -30px; 
+      background: #573b8a; 
+      color: #fff; 
+      border: 2px solid #6d44b8; 
+      padding: 8px 12px; 
+      cursor: pointer; 
+      border-radius: 0 8px 8px 0; 
+      transition: background 0.3s, transform 0.2s; 
+      z-index: 101; 
+      font-size: 1.2em; 
+      line-height: 1; 
+    }
+    .toggle-btn:hover { 
+      background: #6d44b8; 
+      transform: translateX(2px); 
+    }
+
     /* Main Content Styles */
-    .main-content {
-      flex: 1;
-      padding: 30px;
-      transition: margin-left 0.3s ease;
+    .main-content { 
+      margin-left: 70px; 
+      padding: 40px; 
+      flex: 1; 
+      transition: margin-left 0.3s; 
     }
-    
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 2em;
-      font-weight: 700;
+    .toggle-expanded ~ .main-content { 
+      margin-left: 200px; 
     }
-    
-    .section {
-      background: rgba(255,255,255,0.1);
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      margin-bottom: 20px;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
+
+    /* Content Styles */
+    h1 { 
+      text-align: center; 
+      margin-bottom: 40px; 
+      font-size: 2.5em; 
+      font-weight: 700; 
+      color: #e0e0e0; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3); 
     }
-    
-    .section h3 {
-      font-size: 1.5em;
-      margin-bottom: 20px;
-      font-weight: 500;
+
+    /* Section Styles */
+    .section { 
+      background: rgba(255,255,255,0.1); 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+      margin-bottom: 20px; 
+      max-width: 700px; 
+      margin-left: auto; 
+      margin-right: auto; 
+      transition: transform 0.2s ease; 
     }
-    
+    .section:hover { 
+      transform: translateY(-5px); 
+    }
+    .section h3 { 
+      font-size: 1.6em; 
+      margin-bottom: 20px; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      border-bottom: 2px solid #6d44b8; 
+      padding-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+
     /* Form Styles */
-    .budget-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+    .budget-form { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px; 
     }
-    
-    .form-group {
-      display: flex;
-      flex-direction: column;
+    .form-group { 
+      display: flex; 
+      flex-direction: column; 
     }
-    
-    label {
-      font-size: 1.1em;
-      margin-bottom: 5px;
-      font-weight: 500;
+    label { 
+      font-size: 1.1em; 
+      margin-bottom: 8px; 
+      font-weight: 500; 
+      color: #e0e0e0; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
     }
-    
-    input, select {
-      width: 100%;
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      background: #fff;
-      color: #000;
-      transition: border-color 0.3s;
+    input, select { 
+      width: 100%; 
+      padding: 12px 15px; 
+      font-size: 1em; 
+      border-radius: 8px; 
+      border: none; 
+      background: #2a2a4a; 
+      color: #fff; 
+      transition: border-color 0.3s, background 0.3s; 
     }
-    
-    input:focus, select:focus {
-      outline: none;
-      border-color: #6d44b8;
+    input:focus, select:focus { 
+      outline: none; 
+      background: #353565; 
+      border: 1px solid #6d44b8; 
     }
-    
-    .error {
-      color: #ff6b6b;
-      font-size: 0.9em;
-      margin-top: 5px;
-      display: none;
+    .error { 
+      color: #ff6b6b; 
+      font-size: 0.9em; 
+      margin-top: 5px; 
+      display: none; 
     }
-    
-    button {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.1em;
-      border-radius: 5px;
-      border: none;
-      background: #573b8a;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
+    button { 
+      padding: 14px; 
+      font-size: 1.1em; 
+      border-radius: 8px; 
+      border: none; 
+      background: #6d44b8; 
+      color: #fff; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: background 0.3s, transform 0.1s; 
     }
-    
-    button:hover {
-      background: #6d44b8;
+    button:hover { 
+      background: #8259d1; 
+      transform: translateY(-2px); 
     }
-    
+    button:active { 
+      transform: translateY(0); 
+    }
+
     /* Budget Summary Styles */
-    .budget-item {
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .budget-item { 
+      background: rgba(255,255,255,0.05); 
+      padding: 20px; 
+      border-radius: 10px; 
+      margin-bottom: 15px; 
+      transition: transform 0.2s ease; 
     }
-    
-    .budget-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .budget-item:hover { 
+      transform: translateY(-3px); 
     }
-    
-    .budget-item-header h4 {
-      font-size: 1.2em;
-      font-weight: 500;
+    .budget-item-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 10px; 
     }
-    
-    .budget-actions {
-      display: flex;
-      gap: 10px;
+    .budget-item-header h4 { 
+      font-size: 1.2em; 
+      font-weight: 500; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      color: #e0e0e0; 
     }
-    
-    .budget-actions button {
-      width: 40px;
-      height: 40px;
-      padding: 0;
-      font-size: 1em;
-      border-radius: 5px;
+    .budget-actions { 
+      display: flex; 
+      gap: 10px; 
     }
-    
-    .edit-btn {
-      background: #4caf50;
+    .budget-actions button { 
+      width: 40px; 
+      height: 40px; 
+      padding: 0; 
+      font-size: 1em; 
+      border-radius: 5px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
     }
-    
-    .edit-btn:hover {
-      background: #45a049;
+    .edit-btn { 
+      background: #4caf50; 
     }
-    
-    .delete-btn {
-      background: #f44336;
+    .edit-btn:hover { 
+      background: #45a049; 
+      transform: translateY(-2px); 
     }
-    
-    .delete-btn:hover {
-      background: #da190b;
+    .delete-btn { 
+      background: #f44336; 
     }
-    
-    .progress-bar {
-      background: #ddd;
-      border-radius: 20px;
-      overflow: hidden;
-      height: 12px;
-      position: relative;
+    .delete-btn:hover { 
+      background: #da190b; 
+      transform: translateY(-2px); 
     }
-    
-    .progress {
-      height: 100%;
-      transition: width 0.3s ease;
+    .progress-bar { 
+      position: relative; 
+      background: rgba(0,0,0,0.3); 
+      border-radius: 6px; 
+      overflow: hidden; 
+      height: 12px; 
+      margin-top: 10px; 
     }
-    
-    .progress-text {
-      font-size: 0.9em;
-      color: #ccc;
-      margin-top: 5px;
+    .progress { 
+      height: 100%; 
+      transition: width 0.5s ease; 
     }
-    
-    .loading {
-      color: #fff;
-      text-align: center;
-      margin: 20px 0;
-      font-size: 1.1em;
+    .progress-label { 
+      position: absolute; 
+      right: 5px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      font-size: 0.8em; 
+      color: #fff; 
+      font-weight: 500; 
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
     }
-    
-    /* Responsive adjustments */
+    .budget-details { 
+      font-size: 1em; 
+      color: #d0d0d0; 
+      margin: 8px 0; 
+    }
+
+    /* Loading State */
+    .loading { 
+      color: #fff; 
+      text-align: center; 
+      margin: 20px 0; 
+      font-size: 1.2em; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 10px; 
+    }
+    .loading i { 
+      animation: spin 1s linear infinite; 
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive Adjustments */
     @media (max-width: 768px) {
       .main-content {
+        margin-left: 70px;
         padding: 20px;
       }
-      .section {
-        max-width: 100%;
+      .toggle-expanded ~ .main-content { 
+        margin-left: 200px; 
       }
-      .budget-item-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+      h1 { 
+        font-size: 2em; 
+        margin-bottom: 30px; 
       }
-      .budget-actions {
-        width: 100%;
-        justify-content: flex-end;
+      .section { 
+        max-width: 100%; 
+        padding: 20px; 
+      }
+      .section h3 { 
+        font-size: 1.4em; 
+      }
+      .budget-item { 
+        padding: 15px; 
+      }
+      .budget-item-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 10px; 
+      }
+      .budget-item-header h4 { 
+        font-size: 1.1em; 
+      }
+      .budget-actions { 
+        width: 100%; 
+        justify-content: flex-end; 
+      }
+      .budget-details { 
+        font-size: 0.95em; 
       }
     }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
+  <!-- Sidebar (Updated to match dashboard.html) -->
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h2>MENU</h2>
-    </div>
-    
-    <div class="menu-items">
-      <a href="menu.html"><i class="fas fa-home"></i> Home</a>
-      <a href="Profile.html"><i class="fas fa-user"></i> Profile</a>
-      <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-      <a href="transactions.html"><i class="fas fa-list"></i> Transactions</a>
-      <a href="viewreports.html"><i class="fas fa-chart-pie"></i> Reports</a>
-      <a href="budget.html" class="active"><i class="fas fa-wallet"></i> Budget</a>
-      <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
-      <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
-    </div>
-    
-    <div class="sidebar-footer">
-      <button class="logout-btn" id="logout-btn" aria-label="Logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
-    </div>
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>MENU</h2>
+    <a href="menu.html"><i class="fas fa-home"></i><span> Home</span></a>
+    <a href="profile.html" title="Go to Profile"><i class="fas fa-user"></i><span> Profile</span></a>
+    <a href="Dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+    <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
+    <a href="viewreports.html" title="View Reports"><i class="fas fa-chart-pie"></i><span> Reports</span></a>
+    <a href="budget.html" title="Manage Budget" class="active"><i class="fas fa-wallet"></i><span> Budget</span></a>
+    <a href="settings.html" title="App Settings"><i class="fas fa-cog"></i><span> Settings</span></a>
+    <a href="help.html" title="Help & Support"><i class="fas fa-question-circle"></i><span> Help</span></a>
+    <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
   </div>
-
-  <!-- Toggle Button -->
-  <button class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">
-    <i class="fas fa-bars"></i>
-  </button>
 
   <!-- Main Content -->
   <div class="main-content">
     <h1>Budget Planner</h1>
     <div class="section" id="budget-section">
-      <h3>Set Budget Per Category</h3>
+      <h3><i class="fas fa-plus-circle"></i> Set Budget Per Category</h3>
       <form id="budget-form" class="budget-form" aria-label="Set Budget Form">
         <div class="form-group">
-          <label for="budget-category">Category</label>
+          <label for="budget-category"><i class="fas fa-tag"></i> Category</label>
           <select id="budget-category" required aria-required="true">
             <option value="" disabled selected>-- Choose Category --</option>
             <option>Food</option>
@@ -341,15 +395,17 @@
           <span class="error" id="category-error">Please select a category.</span>
         </div>
         <div class="form-group">
-          <label for="budget-amount">Budget Amount (₱)</label>
+          <label for="budget-amount"><i class="fas fa-money-bill-wave"></i> Budget Amount (₱)</label>
           <input type="number" id="budget-amount" min="0" step="0.01" placeholder="e.g., 2000" required aria-required="true">
           <span class="error" id="amount-error">Please enter a valid amount.</span>
         </div>
         <button type="submit">Set Budget</button>
       </form>
 
-      <h3 style="margin-top:30px;">Budget Summary</h3>
-      <div id="loading-budgets" class="loading">Loading budgets...</div>
+      <h3 style="margin-top:30px;"><i class="fas fa-chart-bar"></i> Budget Summary</h3>
+      <div id="loading-budgets" class="loading">
+        <i class="fas fa-spinner"></i> Loading budgets...
+      </div>
       <div id="budget-summary" class="summary"></div>
     </div>
   </div>
@@ -373,9 +429,6 @@
     const auth = firebase.auth();
 
     // DOM Elements
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggle-btn');
-    const logoutBtn = document.getElementById('logout-btn');
     const budgetForm = document.getElementById('budget-form');
     const budgetCategory = document.getElementById('budget-category');
     const budgetAmount = document.getElementById('budget-amount');
@@ -402,7 +455,7 @@
 
     // Load user data from Firebase
     function loadUserData() {
-      loadingBudgets.style.display = 'block';
+      loadingBudgets.style.display = 'flex';
 
       // Load budgets
       database.ref('users/' + currentUser.uid + '/budgets').on('value', snapshot => {
@@ -471,7 +524,7 @@
       budgetSummary.innerHTML = '';
 
       if (Object.keys(userBudgets).length === 0) {
-        budgetSummary.innerHTML = '<p>No budgets set yet.</p>';
+        budgetSummary.innerHTML = '<p style="color: #d0d0d0; text-align: center;">No budgets set yet.</p>';
         return;
       }
 
@@ -484,6 +537,15 @@
         expensesByCategory[expense.category] += expense.amount;
       });
 
+      // Icons for categories
+      const icons = {
+        'Food': 'fas fa-utensils',
+        'Transport': 'fas fa-car',
+        'Bills': 'fas fa-file-invoice-dollar',
+        'Entertainment': 'fas fa-gamepad',
+        'Other': 'fas fa-ellipsis-h'
+      };
+
       // Generate summary for each budget
       for (const category in userBudgets) {
         const limit = userBudgets[category];
@@ -495,7 +557,7 @@
         budgetItem.className = 'budget-item';
         budgetItem.innerHTML = `
           <div class="budget-item-header">
-            <h4>${category}</h4>
+            <h4><i class="${icons[category] || 'fas fa-ellipsis-h'}"></i> ${category}</h4>
             <div class="budget-actions">
               <button class="edit-btn" data-category="${category}" aria-label="Edit ${category} budget">
                 <i class="fas fa-edit"></i>
@@ -505,11 +567,11 @@
               </button>
             </div>
           </div>
-          <p>Spent: ₱${spent.toFixed(2)} / Budget: ₱${limit.toFixed(2)}</p>
+          <p class="budget-details">Spent: ₱${spent.toFixed(2)} / Budget: ₱${limit.toFixed(2)}</p>
           <div class="progress-bar">
             <div class="progress" style="width:${percent}%;background:${barColor};"></div>
+            <span class="progress-label">${percent.toFixed(1)}%</span>
           </div>
-          <p class="progress-text">${percent.toFixed(1)}% used</p>
         `;
         budgetSummary.appendChild(budgetItem);
       }
@@ -538,17 +600,16 @@
     }
 
     // Sidebar Toggle
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-    });
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+    }
 
     // Highlight active menu item
-    const menuItems = document.querySelectorAll('.menu-items a');
+    const menuItems = document.querySelectorAll('.sidebar a');
     menuItems.forEach(item => {
       if (item.getAttribute('href') === 'budget.html') {
         item.classList.add('active');
       }
-      
       item.addEventListener('click', function() {
         menuItems.forEach(i => i.classList.remove('active'));
         this.classList.add('active');
@@ -556,13 +617,13 @@
     });
 
     // Logout functionality
-    logoutBtn.addEventListener('click', () => {
+    function logout() {
       auth.signOut().then(() => {
         window.location.href = 'index.html';
       }).catch(error => {
         alert('Error signing out: ' + error.message);
       });
-    });
+    }
   </script>
 </body>
 </html>
