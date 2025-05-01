@@ -333,7 +333,7 @@
   <div class="sidebar" id="sidebar">
     <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
     <h2>MENU</h2>
-    <a href="Menu.html"><i class="fas fa-home"></i><span> Home</span></a>
+    <a href="menu.html"><i class="fas fa-home"></i><span> Home</span></a>
     <a href="Profile.html" title="Go to Profile" class="active"><i class="fas fa-user"></i><span> Profile</span></a>
     <a href="dashboard.html" title="View Dashboard"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
     <a href="transactions.html" title="See All Transactions"><i class="fas fa-list"></i><span> Transactions</span></a>
@@ -439,7 +439,7 @@
         loadUserProfile(user.uid);
       } else {
         alert('Please sign in to view your profile');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
       }
     });
 
@@ -645,7 +645,7 @@
     // Logout functionality
     function logout() {
       auth.signOut().then(() => {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
       }).catch(error => {
         alert('Error signing out: ' + error.message);
       });

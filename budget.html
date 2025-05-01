@@ -300,7 +300,7 @@
     </div>
     
     <div class="menu-items">
-      <a href="Menu.html"><i class="fas fa-home"></i> Home</a>
+      <a href="menu.html"><i class="fas fa-home"></i> Home</a>
       <a href="Profile.html"><i class="fas fa-user"></i> Profile</a>
       <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
       <a href="transactions.html"><i class="fas fa-list"></i> Transactions</a>
@@ -396,7 +396,7 @@
         loadUserData();
       } else {
         alert('Please sign in to access the budget planner');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
       }
     });
 
@@ -558,7 +558,7 @@
     // Logout functionality
     logoutBtn.addEventListener('click', () => {
       auth.signOut().then(() => {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
       }).catch(error => {
         alert('Error signing out: ' + error.message);
       });
